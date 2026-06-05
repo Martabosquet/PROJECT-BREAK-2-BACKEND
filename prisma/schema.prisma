@@ -4,10 +4,20 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  description String?  @default("") //Si no escribes ninguna descripción, le asigna un texto vacío (en lugar de guardar un valor nulo (null), guardará "").
+  price       Float
+  stock       Int      @default(0)  //Si registras un producto y olvidas poner cuántas unidades tienes, el sistema asume que tienes cero.
+  imageUrl    String   @default("https://placehold.co/300x300?text=Producto") //Asigna una imagen genérica de respaldo (un placeholder).
+  createdAt   DateTime @default(now()) //Guarda la fecha y hora exacta del momento preciso en el que el producto se inserta en la base de datos
+  updatedAt   DateTime @default(now())
 }

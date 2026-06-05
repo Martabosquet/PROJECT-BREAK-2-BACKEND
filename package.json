@@ -20,10 +20,12 @@
   },
   "homepage": "https://github.com/Martabosquet/SPRINT-FEATURES-7#readme",
   "dependencies": {
-    "@prisma/client": "7.8.0",
-    "express": "5.2.1"
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "express": "5.2.1",
+    "pg": "^8.21.0"
   },
   "devDependencies": {
-    "prisma": "7.8.0"
+    "prisma": "^7.8.0"
   }
 }
