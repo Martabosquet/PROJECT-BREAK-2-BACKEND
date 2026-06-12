@@ -15,5 +15,6 @@ app.use((req, res) => {
 
 // PUNTO 3: CREAR EL ARRANQUE DEL SERVIDOR
 app.listen(PORT, () => {
-    console.log(`Servidor escuchando en el puerto http://localhost:${PORT}`)
+    console.log(`🔐 Auth API corriendo en http://localhost:${PORT}`)
+    console.log(`POST /login  |  POST /logout  |  GET /profile  |  GET /admin`)
 });

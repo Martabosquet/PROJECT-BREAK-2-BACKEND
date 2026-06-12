@@ -21,3 +21,13 @@ model Product {
   createdAt   DateTime @default(now()) //Guarda la fecha y hora exacta del momento preciso en el que el producto se inserta en la base de datos
   updatedAt   DateTime @updatedAt
 }
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
