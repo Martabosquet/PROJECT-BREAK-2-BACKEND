@@ -1,8 +1,10 @@
 //SERVER SOLO ARRANCA EL SERVIDOR, NO TIENE RUTAS, SOLO SE ENCARGA DE ARRANCAR EL SERVIDOR Y DE GESTIONAR LOS ERRORES 404
 
-import app from './app.js';
+import "dotenv/config"
+import app from "./app.js"
+import { dbConnection } from "./db/database.js"
 
-const PORT = process.env.PORT || 3000 // coge el puerto del .env y si no coge el 3000
+const PORT = process.env.PORT || 3000
 
 app.use((req, res) => {
     res.status(404).json({
@@ -12,7 +14,12 @@ app.use((req, res) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`🔐 Auth API corriendo en http://localhost:${PORT}`)
-    console.log(`POST /register  |  POST /login  |  POST /logout  |  GET /profile  |  GET /admin`)
-});
+try {
+    await dbConnection()
+    app.listen(PORT, () => {
+        console.log(`🔐 Server is running on http://localhost:${PORT}`)
+    })
+} catch (error) {
+    console.error("Error al conectar con MongoDB", error.message)
+    process.exit(1)
+}

@@ -9,7 +9,9 @@ import rateLimit from "express-rate-limit"
 
 import productRouter from './routes/products.routes.js';
 import indexRouter from './routes/index.routes.js';
-import authRouter from "./routes/auth.routes.js"
+import authRouter from "./routes/auth.routes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
+import wishlistRoutes from "./routes/wishlistRoutes.js";
 
 import { notFound } from "./middlewares/notFound.js"
 import { errorHandler } from "./middlewares/errorHandler.js"
@@ -47,17 +49,20 @@ app.use(express.json()) // le dice a express que entienda JSON
 app.use(express.urlencoded({ extended: true })) // Analiza cuerpos de peticiones POST
 app.use(cookieParser()) // Analiza cookies en las peticiones
 
+app.use(reviewRoutes)
+app.use(wishlistRoutes)
+
 app.use("/", productRouter) //o se lo pongo aquí /api/products o se lo pongo en routes directamente, yo he decidido ponérselo en routes directamente
-app.use("/", authRouter) 
+app.use("/", authRouter)
 app.use("/", indexRouter)
 
 app.use(notFound)
 app.use(errorHandler)
 
 app.get("/", (req, res) => {
-    res.json({
-        message: "API Crud completo activa",
-    })
+  res.json({
+    message: "API Crud completo activa",
+  })
 })
 
 export default app

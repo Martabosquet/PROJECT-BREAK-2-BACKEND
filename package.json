@@ -4,8 +4,9 @@
   "description": "API REST de productos construida con Express.js para gestionar un catálogo de productos.",
   "main": "index.js",
   "scripts": {
-    "start": "node --watch src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "repository": {
     "type": "git",
@@ -29,9 +30,16 @@
     "express-rate-limit": "^8.5.2",
     "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.3",
+    "mongodb": "^7.3.0",
+    "mongoose": "^9.7.0",
     "pg": "^8.21.0"
   },
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {}
+  },
   "devDependencies": {
+    "jest": "^30.4.2",
     "prisma": "^7.8.0"
   }
 }
