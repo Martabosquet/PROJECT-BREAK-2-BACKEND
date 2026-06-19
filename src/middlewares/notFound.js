@@ -1,4 +1,4 @@
-// Se registrar después de todas las rutas
+// Se registra después de todas las rutas
 // Captura cualquier petición a una url inexistente
 
 export const notFound = (req, res, next) => {

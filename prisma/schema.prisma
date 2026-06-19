@@ -17,7 +17,7 @@ model Product {
   description String?  @default("") //Si no escribes ninguna descripción, le asigna un texto vacío (en lugar de guardar un valor nulo (null), guardará "").
   price       Float
   stock       Int      @default(0)  //Si registras un producto y olvidas poner cuántas unidades tienes, el sistema asume que tienes cero.
-  imageUrl    String   @default("https://placehold.co/300x300?text=Producto") //Asigna una imagen genérica de respaldo (un placeholder).
+  imageUrl    String?   @default("https://placehold.co/300x300?text=Producto") //Asigna una imagen genérica de respaldo (un placeholder).
   createdAt   DateTime @default(now()) //Guarda la fecha y hora exacta del momento preciso en el que el producto se inserta en la base de datos
   updatedAt   DateTime @updatedAt
 }
@@ -28,4 +28,52 @@ model User {
   password  String
   role      String   @default("user")
   createdAt DateTime @default(now()) @map("created_at")
+}
+
+// Representa el carrito activo
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String
+  status    CartStatus @default(ACTIVE)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt
+  items     CartItem[]
+
+  @@map("carts")
+}
+
+// Cada línea del carrito: cuántas unidades y qué producto
+model CartItem {
+  id        String @id @default(uuid())
+  cartId    String
+  productId String
+  quantity  Int
+
+  cart Cart @relation(fields: [cartId], references: [id])
+
+  @@map("cart_items")
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  userId    String
+  total     Float
+  createdAt DateTime @default(now()) @map("created_at")
+  items     OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String   @id @default(cuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String
+  quantity        Int
+  priceAtPurchase Float
+}
+
+enum CartStatus {
+  ACTIVE
+  CHECKED_OUT
 }

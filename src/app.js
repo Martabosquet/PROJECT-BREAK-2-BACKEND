@@ -12,6 +12,7 @@ import indexRouter from './routes/index.routes.js';
 import authRouter from "./routes/auth.routes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
+import cartRouter from "./routes/cart.routes.js";
 
 import { notFound } from "./middlewares/notFound.js"
 import { errorHandler } from "./middlewares/errorHandler.js"
@@ -55,6 +56,7 @@ app.use(wishlistRoutes)
 app.use("/", productRouter) //o se lo pongo aquí /api/products o se lo pongo en routes directamente, yo he decidido ponérselo en routes directamente
 app.use("/", authRouter)
 app.use("/", indexRouter)
+app.use("/api/cart", cartRouter)
 
 app.use(notFound)
 app.use(errorHandler)

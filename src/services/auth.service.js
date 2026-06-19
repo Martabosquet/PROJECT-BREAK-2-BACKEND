@@ -3,31 +3,31 @@ import jwt from "jsonwebtoken"
 import prisma from "../config/prismaClient.js"
 
 const registerUser = async (email, password, role) => {
-    const userExists = await prisma.user.findUnique({
-        where: { email },
-    })
+  const userExists = await prisma.user.findUnique({
+    where: { email },
+  })
 
-    if (userExists) {
-        throw new Error("El email ya está registrado")
-    }
+  if (userExists) {
+    throw new Error("El email ya está registrado")
+  }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
+  const hashedPassword = await bcrypt.hash(password, 10)
 
-    const newUser = await prisma.user.create({
-        data: {
-            email,
-            password: hashedPassword,
-            role,
-        },
-        select: {
-            id: true,
-            email: true,
-            role: true,
-            createdAt: true,
-        },
-    })
+  const newUser = await prisma.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+      role,
+    },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      createdAt: true,
+    },
+  })
 
-    return newUser
+  return newUser
 };
 
 const login = async (email, password) => {
@@ -58,7 +58,7 @@ const login = async (email, password) => {
   return token
 }
 
-export const authService = { 
+export const authService = {
   registerUser,
   login
 }
