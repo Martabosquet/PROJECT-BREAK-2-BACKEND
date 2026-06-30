@@ -35,7 +35,6 @@
     "mongoose": "9.7.0",
     "multer": "^2.2.0",
     "pg": "8.21.0",
-    "supertest": "7.2.2",
     "swagger-jsdoc": "6.3.0",
     "swagger-ui-express": "5.0.1"
   },
@@ -44,7 +43,11 @@
     "transform": {}
   },
   "devDependencies": {
-    "jest": "30.4.2",
-    "prisma": "7.8.0"
+    "@babel/core": "^8.0.1",
+    "@babel/preset-env": "^8.0.2",
+    "babel-jest": "^30.4.1",
+    "jest": "^30.4.2",
+    "prisma": "7.8.0",
+    "supertest": "^7.2.2"
   }
 }

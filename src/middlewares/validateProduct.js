@@ -1,6 +1,3 @@
-// Se ejecuta antes del controller en la ruta POST /api/products
-// Verifica que el body contiene los campos obligatorios con el tipo de dato correcto
-
 export const validateProduct = (req, res, next) => {
   const { name, price, stock } = req.body
 
@@ -12,20 +9,40 @@ export const validateProduct = (req, res, next) => {
     })
   }
 
-  // 2. Validar campo 'price' (Obligatorio, número mayor o igual a 0)
-  if (price === undefined || typeof price !== 'number' || price < 0) {
+  // 2. Validar campo 'price' (Viene como String de Multer, validamos y convertimos)
+  if (price === undefined || price.trim() === '') {
     return res.status(400).json({
       ok: false,
-      error: "El campo 'price' es obligatorio y debe ser un número positivo.",
+      error: "El campo 'price' es obligatorio.",
     })
   }
 
-  // 3. Validar campo 'stock' (Opcional, pero si se envía debe ser entero >= 0)
-  if (stock !== undefined && (typeof stock !== 'number' || stock < 0 || !Number.isInteger(stock))) {
+  const parsedPrice = parseFloat(price);
+  // isNaN verifica que realmente sea un número convertible (ej: "15.99" es válido, "abc" no)
+  if (isNaN(parsedPrice) || parsedPrice < 0) {
     return res.status(400).json({
       ok: false,
-      error: "El campo 'stock' debe ser un número entero no negativo.",
+      error: "El campo 'price' debe ser un número positivo.",
     })
+  }
+
+  // Guardamos el valor ya convertido en req.body para que el servicio lo reciba limpio
+  req.body.price = parsedPrice;
+
+
+  // 3. Validar campo 'stock' (Opcional, pero si se envía debe ser entero >= 0)
+  if (stock !== undefined && stock !== '') {
+    const parsedStock = Number(stock);
+
+    if (isNaN(parsedStock) || parsedStock < 0 || !Number.isInteger(parsedStock)) {
+      return res.status(400).json({
+        ok: false,
+        error: "El campo 'stock' debe ser un número entero no negativo.",
+      })
+    }
+
+    // Guardamos el valor convertido
+    req.body.stock = parsedStock;
   }
 
   next()

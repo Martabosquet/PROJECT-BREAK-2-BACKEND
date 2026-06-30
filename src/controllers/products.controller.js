@@ -39,35 +39,37 @@ const getProductById = async (req, res, next) => {
 
 const createProduct = async (req, res, next) => {
   try {
-    const { name, price, description, stock, imageUrl } = req.body //destructuring datos del body
-    const newProduct = await productsService.createProduct({ name, price, description, stock, imageUrl })
-    res.status(201).json({ ok: true, data: newProduct }) // 201 created
-  } catch (error) {
-    next(error)
-  }
+    const productData = req.body;
+    const file = req.file;
 
+    const newProduct = await productsService.createProduct(productData, file);
+
+    res.status(201).json({ ok: true, data: newProduct });
+  } catch (error) {
+    next(error);
+  }
 };
 
 const updateProduct = async (req, res, next) => {
   try {
-    const id = req.params.id
-    const updatedProduct = await productsService.updateProduct(id, req.body)
-
-    if (!updatedProduct) {
-      return res.status(404).json({
-        ok: false,
-        error: "Producto no encontrado",
-      })
-    }
+    const id = req.params.id;
+    // Ahora enviamos también req.file al servicio
+    const updatedProduct = await productsService.updateProduct(id, req.body, req.file);
 
     res.json({
       ok: true,
       data: updatedProduct,
-    })
+    });
   } catch (error) {
-    next(error)
+    // Si Prisma no encuentra el ID, lanzará el código P2025
+    if (error.code === "P2025") {
+      return res.status(404).json({
+        ok: false,
+        error: "Producto no encontrado",
+      });
+    }
+    next(error);
   }
-
 };
 
 const deleteProduct = async (req, res, next) => {
@@ -90,7 +92,6 @@ const deleteProduct = async (req, res, next) => {
   }
 
 };
-
 
 export const productsController = {
   getProducts,
