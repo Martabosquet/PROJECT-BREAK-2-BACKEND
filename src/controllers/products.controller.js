@@ -6,17 +6,17 @@ const getProducts = async (req, res, next) => {
     const data = await productsService.getAllProducts() //obtenemos el array de productos a través del service
     res.json({
       ok: true,
-      data: data, //aquí irían los productos obtenidos de la base de datos
+      data: data,
     })
   } catch (error) {
+    // Si ocurre un error, lo delegamos al middleware de manejo de errores global
     next(error)
   }
-
-
 };
 
 const getProductById = async (req, res, next) => {
   try {
+    // Extraemos el identificador único del producto desde los parámetros de la URL
     const { id } = req.params;
 
     const product = await prisma.product.findUniqueOrThrow({     // findUniqueOrThrow lanza automáticamente un error si no lo encuentra.
@@ -32,7 +32,7 @@ const getProductById = async (req, res, next) => {
 const createProduct = async (req, res, next) => {
   try {
     const productData = req.body;
-    const file = req.file;
+    const file = req.file; // Extraemos el archivo cargado (imagen) si está presente (gracias a Multer)
 
     const newProduct = await productsService.createProduct(productData, file);
 

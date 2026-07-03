@@ -1,7 +1,11 @@
+// MIDDLEWARE DE VALIDACIÓN DE PRODUCTO
+// Este middleware se encarga de validar los campos 'name', 'price' y 'stock' recibidos en el cuerpo de la petición.
+// Dado que la petición puede procesarse como FormData (Multer) para adjuntar imágenes,
+// los campos numéricos suelen enviarse como strings y aquí los validamos, convertimos y reinyectamos limpios en req.body.
 export const validateProduct = (req, res, next) => {
   const { name, price, stock } = req.body
 
-  // Validar campo 'name' (Obligatorio, string no vacío)
+  // 1. Validar campo 'name': obligatorio, debe ser un string y no contener únicamente espacios
   if (!name || typeof name !== 'string' || name.trim() === '') {
     return res.status(400).json({
       ok: false,
@@ -9,16 +13,17 @@ export const validateProduct = (req, res, next) => {
     })
   }
 
-  // Validar campo 'price' (Viene como String de Multer, validamos y convertimos)
-  if (price === undefined || price.trim() === '') {
+  // 2. Validar campo 'price': obligatorio en la creación del producto
+  if (price === undefined || (typeof price === 'string' && price.trim() === '')) {
     return res.status(400).json({
       ok: false,
       error: "El campo 'price' es obligatorio.",
     })
   }
 
+  // Convertimos a coma flotante decimal
   const parsedPrice = parseFloat(price);
-  // isNaN verifica que realmente sea un número convertible (ej: "15.99" es válido, "abc" no)
+  // Verificamos que sea un número real (no NaN) y que sea mayor o igual a 0 (precio positivo)
   if (isNaN(parsedPrice) || parsedPrice < 0) {
     return res.status(400).json({
       ok: false,
@@ -26,14 +31,15 @@ export const validateProduct = (req, res, next) => {
     })
   }
 
-  // Guardamos el valor ya convertido en req.body para que el servicio lo reciba limpio
+  // Guardamos el valor parseado numérico en la request para que la capa de servicio trabaje directamente con números
   req.body.price = parsedPrice;
 
-
-  // Validar campo 'stock' (Opcional, pero si se envía debe ser entero >= 0)
+  // 3. Validar campo 'stock': opcional, pero si está presente debe ser un número entero no negativo
   if (stock !== undefined && stock !== '') {
+    // Convertimos a tipo numérico
     const parsedStock = Number(stock);
 
+    // Validamos que sea un número válido, que no sea negativo, y que represente un valor entero
     if (isNaN(parsedStock) || parsedStock < 0 || !Number.isInteger(parsedStock)) {
       return res.status(400).json({
         ok: false,
@@ -41,7 +47,7 @@ export const validateProduct = (req, res, next) => {
       })
     }
 
-    // Guardamos el valor convertido
+    // Almacenamos el stock ya parseado en la request
     req.body.stock = parsedStock;
   }
 

@@ -17,7 +17,7 @@ Este proyecto es un backend REST para un e-commerce construido con Node.js, Expr
 - ECMAScript Modules (ESM)
 - JWT con `jsonwebtoken`
 - Prisma + PostgreSQL para productos, carrito, pedidos y usuarios
-- MongoDB / Mongoose para reviews
+- MongoDB / Mongoose para reviews y wishlist
 - `multer` para subida de imágenes
 - `helmet`, `cors`, `express-rate-limit` para seguridad
 - `swagger-ui-express` para documentación de API
@@ -38,7 +38,6 @@ Este proyecto es un backend REST para un e-commerce construido con Node.js, Expr
    - `DATABASE_URL` para Prisma/PostgreSQL
    - `MONGODB_URI` para MongoDB
    - `CLOUDINARY_*` si usas Cloudinary para imágenes
-   - `FRONTEND_URL` para CORS
 
 3. Arranca el servidor:
    ```bash
@@ -84,7 +83,7 @@ El proyecto incluye pruebas unitarias y de integración con `jest` y `supertest`
   - Body:
     - `email` (string, obligatorio)
     - `password` (string, obligatorio)
-    - `role` (string, opcional, `user` o `admin`)
+    - `role` (string, opcional, `user` o `admin` por defecto `user`)
   - Respuesta: usuario creado.
 
 - `POST /api/auth/login`
@@ -223,25 +222,23 @@ El proyecto incluye pruebas unitarias y de integración con `jest` y `supertest`
 
 ## 🔐 Autorización y roles
 
-- Las rutas de `products` de creación, edición y borrado están protegidas para `admin`.
+- Las rutas de creación, edición y borrado están protegidas para `admin`.
 - El endpoint `/api/admin` está reservado para `admin`.
-- `wishlist DELETE` requiere `admin`.
-- Las rutas del carrito, checkout, historial de pedidos y reviews protegidas requieren autenticación.
-- El `req.user` se obtiene desde el middleware JWT y no desde `req.body`.
 
 ---
 
 ## 📁 Estructura principal
 
-- `src/app.js` — configuración global de Express, middlewares y rutas.
-- `src/server.js` — arranque del servidor y conexión a MongoDB.
-- `src/routes/` — definición de rutas por módulo.
-- `src/controllers/` — lógica de respuestas HTTP.
-- `src/services/` — lógica de negocio y acceso a datos.
-- `src/config/` — configuraciones de Prisma, MongoDB, Cloudinary y multer.
-- `src/middlewares/` — autenticación, roles, validación y manejo de errores.
-- `swagger.json` — documentación OpenAPI usada por Swagger UI.
-
+src/
+├── config/             # Conexiones a bases de datos (Prisma y Mongoose) y Cloudinary
+├── controllers/        # Procesamiento de peticiones y respuestas HTTP unificadas
+├── middlewares/        # Validadores, autenticación (JWT/RBAC) y manejador global de errores
+├── models/             # Esquemas de Mongoose para MongoDB
+├── routes/             # Definición de enrutadores de la API
+├── services/           # Lógica de negocio pesada y consultas a bases de datos
+├── tests/              # Suite de pruebas automatizadas de endpoints
+├── app.js              # Configuración de Express, middlewares globales y tuberías
+└── server.js           # Inicialización y arranque del servidor HTTP
 ---
 
 ## 💡 Notas importantes
@@ -259,14 +256,3 @@ El proyecto incluye pruebas unitarias y de integración con `jest` y `supertest`
 - `npm install` — instala dependencias.
 - `npm start` — levanta el servidor.
 - `npm test` — ejecuta pruebas con Jest.
-
----
-
-## 🎯 Estado del proyecto
-
-- API funcional con rutas públicas y privadas.
-- Soporte para roles `user` y `admin`.
-- Carrito de compra, checkout y ordenes con historial.
-- Reviews y wishlist integradas.
-- Swagger disponible para explorar y probar la API.
-- Pruebas con `jest` y `supertest` incluidas.

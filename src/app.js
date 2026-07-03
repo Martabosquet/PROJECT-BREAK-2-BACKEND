@@ -56,7 +56,8 @@ const limiter = rateLimit({
     error: "Demasiadas peticiones. Inténtalo de nuevo en 1 minuto.",
   },
 });
-app.use(limiter);
+
+if (process.env.NODE_ENV !== "test") app.use(limiter); // Si lo dejo activo para probar tests, el limitador pensará que tus propios tests son un ataque informático y empezará a bloquearlos devolviendo un error 429 Too Many Requests
 
 // 7. MIDDLEWARES DE PARSEO (Lectura y formateo de datos entrantes)
 app.use(express.json()); // le dice a express que entienda JSON

@@ -2,16 +2,18 @@ import { Wishlist } from "../models/wishlist.model.js"
 import prisma from "../config/prismaClient.js"
 
 export const addToWishlist = async (userId, productId) => {
-    //Verificar que el producto existe en Supabase
+    // Validación cruzada de BD: Consultamos en PostgreSQL (vía Prisma) que el producto exista
     const productExists = await prisma.product.findUnique({
         where: { id: productId }
     })
 
     if (!productExists) {
-        throw new Error("El producto no existe")
+        const error = new Error("El producto no existe")
+        error.statusCode = 404
+        throw error
     }
 
-    //Si existe, guardarlo en la wishlist de MongoDB
+    // Persistencia en MongoDB: Si existe, creamos un documento en la wishlist de MongoDB
     const wishlist = new Wishlist({ userId, productId })
     return await wishlist.save()
 }
@@ -21,17 +23,23 @@ export const getWishlistByUser = async (userId) => {
 }
 
 export const removeFromWishlist = async (id) => {
+    // Ejecuta la consulta de eliminación por clave primaria _id en MongoDB
     return await Wishlist.findByIdAndDelete(id)
 }
 
-//Funciones puras para testeo
+// ==========================================
+// FUNCIONES PURAS AUXILIARES PARA TESTING
+// Operaciones puras en memoria sobre listas (arrays) para testeo unitario.
+// ==========================================
 
 export const addProductToWishlist = (list, productId) => {
-    if (list.includes(productId)) {  // comprobamos que el producto existe dentro de la lista para evitar duplicados
+    // Comprobamos si el producto ya existe en la lista para evitar duplicar favoritos
+    if (list.includes(productId)) {
         return list
     }
 
-    return [...list, productId] // si no está, creamos nuevo array clonando la lista y añadiendo el nuevo producto
+    // Retornamos un nuevo array clonando la lista previa y concatenando el nuevo elemento (inmutabilidad)
+    return [...list, productId]
 }
 
 export const removeProductFromWishlist = (list, productId) => {

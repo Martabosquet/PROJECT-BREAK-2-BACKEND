@@ -1,4 +1,4 @@
-//WISHLIST: Guardar productos en la lista de favoritos del usuario logueado
+// MÓDULO DE LISTA DE DESEOS (WISHLIST)
 
 import express from "express"
 import * as wishlistController from "../controllers/wishlist.controller.js"

@@ -11,22 +11,22 @@ export const getProductById = async (id) => {
   });
 };
 
-// 1. Modificado para recibir el archivo de imagen opcional
 export const createProduct = async (data, file) => {
   let imageUrl = data.imageUrl || null;
 
   // Si viene un archivo, lo subimos a Cloudinary primero
   if (file) {
     const uploadResult = await uploadImage(file);
-    imageUrl = uploadResult.secure_url;
+    imageUrl = uploadResult.secure_url; // Extraemos la URL segura (HTTPS) provista por Cloudinary
   }
 
   return await prisma.product.create({
     data: {
       name: data.name,
-      // 2. Parsear strings a números por si vienen de un formulario formData
+      // Convertimos el precio a float (en caso de que venga como cadena desde un formulario)
       price: data.price ? parseFloat(data.price) : 0,
       description: data.description || null,
+      // Convertimos el stock a entero en base 10
       stock: data.stock ? parseInt(data.stock, 10) : 0,
       imageUrl: imageUrl
     }
@@ -34,26 +34,26 @@ export const createProduct = async (data, file) => {
 };
 
 export const updateProduct = async (id, data, file) => {
+  // Lista de campos permitidos en la actualización para evitar inserciones maliciosas
   const allowedFields = ["name", "price", "description", "stock"];
   const updateData = {};
 
   allowedFields.forEach((field) => {
     if (field in data) {
-      // Parsear campos numéricos si vienen en el update
+      // Parsear campos numéricos si vienen en el payload para evitar errores de tipo en la BD
       if (field === "price") updateData[field] = parseFloat(data[field]);
       else if (field === "stock") updateData[field] = parseInt(data[field], 10);
       else updateData[field] = data[field];
     }
   });
 
-  // Si también se quiere actualizar la imagen
+  // Si se envía una nueva imagen para actualizar
   if (file) {
     const uploadResult = await uploadImage(file);
     updateData.imageUrl = uploadResult.secure_url;
   }
 
-  // 3. Quitamos el try/catch de aquí para que el controlador 
-  // pueda capturar el error de Prisma de manera centralizada.
+  // Realizamos la actualización en la BD. El error se propaga hacia el controlador.
   return await prisma.product.update({
     where: { id },
     data: updateData
@@ -61,7 +61,7 @@ export const updateProduct = async (id, data, file) => {
 };
 
 export const deleteProduct = async (id) => {
-  // Dejamos que el error fluya hacia el controlador para que detecte el código "P2025"
+  // Ejecutamos la consulta DELETE. Si el ID no existe, Prisma lanzará error P2025.
   return await prisma.product.delete({
     where: { id }
   });
@@ -69,6 +69,7 @@ export const deleteProduct = async (id) => {
 
 export function uploadImage(file) {
   return new Promise((resolve, reject) => {
+    // Creamos un stream de subida configurando la carpeta destino en Cloudinary
     const stream = cloudinary.uploader.upload_stream(
       { folder: "products" },
       (error, result) => {

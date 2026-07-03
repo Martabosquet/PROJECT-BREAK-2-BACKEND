@@ -2,18 +2,18 @@ import * as wishlistService from "../services/wishlist.service.js"
 
 export const addToWishlist = async (req, res, next) => {
     try {
-        // userId extraído de forma segura del token JWT (no del body)
+        // Extraemos de forma segura el userId del token JWT previamente validado (evita suplantación en body)
         const userId = String(req.user.id)
-        // productId extraído de los parámetros de la URL
         const { productId } = req.params
 
+        // Validación básica: aseguramos que venga el productId en los parámetros
         if (!productId) {
-            return res.status(400).json({
-                ok: false,
-                error: "El id del producto es obligatorio",
-            })
+            const error = new Error("El id del producto es obligatorio")
+            error.statusCode = 400
+            throw error
         }
 
+        // Llamamos al servicio para guardar la wishlist en MongoDB (el servicio valida que el producto exista en PostgreSQL)
         const wishlistItem = await wishlistService.addToWishlist(userId, productId)
         res.status(201).json({
             ok: true,
@@ -26,7 +26,7 @@ export const addToWishlist = async (req, res, next) => {
 
 export const getWishlistByUser = async (req, res, next) => {
     try {
-        // userId extraído de forma segura del token JWT
+        // Extraemos de forma segura el userId desde la sesión de JWT descodificada
         const userId = String(req.user.id)
 
         const wishlistItems = await wishlistService.getWishlistByUser(userId)
@@ -44,10 +44,9 @@ export const removeFromWishlist = async (req, res, next) => {
         const wishlistItem = await wishlistService.removeFromWishlist(req.params.id)
 
         if (!wishlistItem) {
-            return res.status(404).json({
-                ok: false,
-                error: "Elemento no encontrado",
-            })
+            const error = new Error("Elemento no encontrado")
+            error.statusCode = 404
+            throw error
         }
         res.json({
             ok: true,

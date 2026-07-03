@@ -29,10 +29,9 @@ export const addItemController = async (req, res, next) => {
         const { productId, quantity } = req.body
 
         if (!productId || !quantity) {
-            return res.status(400).json({
-                ok: false,
-                error: "productId y quantity son obligatorios",
-            })
+            const error = new Error("productId y quantity son obligatorios")
+            error.statusCode = 400
+            throw error
         }
 
         const item = await addItem(String(req.user.id), productId, quantity) // Convertimos a String porque Cart.userId es String en Prisma
@@ -74,10 +73,9 @@ export const getOrderByIdController = async (req, res, next) => {
         const order = await getOrderById(String(req.user.id), req.params.orderId)
 
         if (!order) {
-            return res.status(404).json({
-                ok: false,
-                error: "Pedido no encontrado",
-            })
+            const error = new Error("Pedido no encontrado")
+            error.statusCode = 404
+            throw error
         }
 
         res.json({
@@ -92,14 +90,7 @@ export const getOrderByIdController = async (req, res, next) => {
 export const removeItemController = async (req, res, next) => {
     try {
         const { itemId } = req.params
-        const deleted = await removeItem(itemId)
-
-        if (!deleted) {
-            return res.status(404).json({
-                ok: false,
-                error: "Elemento no encontrado en el carrito",
-            })
-        }
+        await removeItem(itemId)
 
         res.json({
             ok: true,
@@ -116,19 +107,17 @@ export const decreaseItemQuantityController = async (req, res, next) => {
         const { quantity } = req.body
 
         if (!quantity || typeof quantity !== "number" || quantity <= 0) {
-            return res.status(400).json({
-                ok: false,
-                error: "quantity es obligatorio y debe ser un número positivo",
-            })
+            const error = new Error("quantity es obligatorio y debe ser un número positivo")
+            error.statusCode = 400
+            throw error
         }
 
         const item = await decreaseItemQuantity(itemId, quantity)
 
         if (!item) {
-            return res.status(404).json({
-                ok: false,
-                error: "Elemento no encontrado en el carrito",
-            })
+            const error = new Error("Elemento no encontrado en el carrito")
+            error.statusCode = 404
+            throw error
         }
 
         res.json({

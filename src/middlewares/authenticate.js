@@ -1,10 +1,10 @@
 import jwt from "jsonwebtoken"
 
 export const authMiddleware = (req, res, next) => {
+    // Obtenemos la clave secreta desde las variables de entorno
     const JWT_SECRET = process.env.JWT_SECRET;
 
     if (!JWT_SECRET) {
-        // Los errores críticos del servidor se lanzan para que caigan en la respuesta 500 unificada
         const error = new Error("No se encontró la clave secreta del servidor");
         error.statusCode = 500;
         return next(error);
@@ -16,11 +16,11 @@ export const authMiddleware = (req, res, next) => {
     if (req.cookies && req.cookies.token) {
         token = req.cookies.token;
     }
-    // Si no está en cookies, intentamos de la cabecera Authorization
+    // Si no está en cookies, intentamos recuperarlo desde la cabecera 'Authorization' (Bearer Token)
     else {
         const authHeader = req.headers['authorization'];
         if (authHeader && authHeader.startsWith('Bearer ')) {
-            token = authHeader.split(' ')[1];
+            token = authHeader.split(' ')[1]; // Extraemos únicamente el hash del token
         }
     }
 

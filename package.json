@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "repository": {
     "type": "git",
@@ -43,11 +43,12 @@
     "transform": {}
   },
   "devDependencies": {
-    "@babel/core": "^8.0.1",
-    "@babel/preset-env": "^8.0.2",
-    "babel-jest": "^30.4.1",
-    "jest": "^30.4.2",
+    "@babel/core": "8.0.1",
+    "@babel/preset-env": "8.0.2",
+    "babel-jest": "30.4.1",
+    "cross-env": "10.1.0",
+    "jest": "30.4.2",
     "prisma": "7.8.0",
-    "supertest": "^7.2.2"
+    "supertest": "7.2.2"
   }
 }
