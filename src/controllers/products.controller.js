@@ -1,9 +1,8 @@
 import { productsService } from "../services/products.service.js"
-import prisma from "../config/prismaClient.js"
 
 const getProducts = async (req, res, next) => {
   try {
-    const data = await productsService.getAllProducts() //obtenemos el array de productos a través del service
+    const data = await productsService.getAllProducts() // obtenemos el array de productos a través del service
     res.json({
       ok: true,
       data: data,
@@ -16,16 +15,18 @@ const getProducts = async (req, res, next) => {
 
 const getProductById = async (req, res, next) => {
   try {
-    // Extraemos el identificador único del producto desde los parámetros de la URL
     const { id } = req.params;
+    const product = await productsService.getProductById(id);
 
-    const product = await prisma.product.findUniqueOrThrow({     // findUniqueOrThrow lanza automáticamente un error si no lo encuentra.
-      where: { id }
-    });
+    if (!product) {
+      const error = new Error("Producto no encontrado");
+      error.statusCode = 404;
+      throw error;
+    }
 
     return res.json({ ok: true, data: product });
   } catch (error) {
-    next(error); // Prisma envía su error nativo con código P2025
+    next(error);
   }
 };
 
@@ -33,9 +34,7 @@ const createProduct = async (req, res, next) => {
   try {
     const productData = req.body;
     const file = req.file; // Extraemos el archivo cargado (imagen) si está presente (gracias a Multer)
-
     const newProduct = await productsService.createProduct(productData, file);
-
     res.status(201).json({ ok: true, data: newProduct });
   } catch (error) {
     next(error);
@@ -45,12 +44,9 @@ const createProduct = async (req, res, next) => {
 const updateProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
-
-    const updatedProduct = await prisma.product.update({
-      where: { id },
-      data: req.body
-    });
-
+    const file = req.file; // Igual que en createProduct, soportamos actualizar la imagen
+    // delegamos en el service, que sí filtra los campos permitidos y sí sube la imagen a Cloudinary si llega.
+    const updatedProduct = await productsService.updateProduct(id, req.body, file);
     return res.json({ ok: true, data: updatedProduct });
   } catch (error) {
     next(error);
@@ -60,11 +56,9 @@ const updateProduct = async (req, res, next) => {
 const deleteProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
-
-    await prisma.product.delete({
-      where: { id }
-    });
-
+    // se usa el service en vez de prisma.product.delete directo,
+    // para mantener toda la lógica de acceso a datos centralizada ahí.
+    await productsService.deleteProduct(id);
     return res.json({ ok: true, message: "Producto eliminado con éxito" });
   } catch (error) {
     next(error);

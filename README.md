@@ -35,7 +35,7 @@ Este proyecto es un backend REST para un e-commerce construido con Node.js, Expr
 2. Configura las variables de entorno necesarias (`.env`):
    - `PORT`
    - `JWT_SECRET`
-   - `DATABASE_URL` para Prisma/PostgreSQL
+   - `DATABASE_URL` para Prisma/PostgreSQL (o `DIRECT_URL`)
    - `MONGODB_URI` para MongoDB
    - `CLOUDINARY_*` si usas Cloudinary para imágenes
 
@@ -248,6 +248,7 @@ src/
 - La ruta `/api/docs` permite probar los endpoints desde Swagger.
 - El checkout crea `Order` y registra los `OrderItem` con el precio de compra actual.
 - La protección de roles está implementada con `requireRole('admin')`.
+- Errores: el stack trace solo se expone en `NODE_ENV=development`; en producción solo se devuelve el mensaje.
 
 ---
 

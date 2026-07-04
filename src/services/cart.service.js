@@ -2,16 +2,12 @@ import prisma from "../config/prismaClient.js"
 
 // Obtenemos el carrito active del user y si no existe lo crea
 export const getCart = async (userId) => {
-    // Normalizamos el ID del usuario a String ya que en la base de datos se guarda en este formato
     const normalizedUserId = String(userId)
-
-    // Buscamos en PostgreSQL el primer carrito que pertenezca al usuario y cuyo estado sea ACTIVE
     let cart = await prisma.cart.findFirst({
         where: { userId: normalizedUserId, status: "ACTIVE" },
         include: { items: true },
     })
 
-    // Si no existe un carrito activo previo, creamos uno nuevo para iniciar la sesión de compra
     if (!cart) {
         cart = await prisma.cart.create({
             data: { userId: normalizedUserId },
@@ -23,17 +19,14 @@ export const getCart = async (userId) => {
 }
 
 // Obtener un carrito por id
-
 export const getCartById = async (cartId) => {
     let cart = await prisma.cart.findUnique({
         where: { id: cartId },
     })
-
     return cart
 }
 
 // Añadir producto al carrito
-
 export const addItem = async (userId, productId, quantity) => {
     // Validación: Verificar que el producto existe en la BD
     const product = await prisma.product.findUnique({
@@ -53,6 +46,19 @@ export const addItem = async (userId, productId, quantity) => {
         where: { cartId: cart.id, productId },
     })
 
+    // validamos el stock disponible antes de añadir/acumular cantidad en el carrito. Ahora comprobamos que la cantidad total
+    // solicitada (lo que ya había en el carrito + lo nuevo) no supere el stock real del producto.
+    const currentQuantityInCart = existingItem ? existingItem.quantity : 0
+    const totalRequested = currentQuantityInCart + quantity
+
+    if (totalRequested > product.stock) {
+        const error = new Error(
+            `Stock insuficiente. Disponible: ${product.stock}, solicitado: ${totalRequested}`
+        )
+        error.statusCode = 400
+        throw error
+    }
+
     if (existingItem) {
         return prisma.cartItem.update({
             where: { id: existingItem.id },
@@ -65,24 +71,45 @@ export const addItem = async (userId, productId, quantity) => {
     })
 }
 
-// Eliminar un producto del carrito por su itemId
-export const removeItem = async (itemId) => {
+// Comprobamos que el item pertenece al carrito del usuario que hace la petición. Evita que un usuario autenticado pueda borrar/modificar
+// items de carritos ajenos adivinando o reutilizando un itemId (IDOR).
+const assertItemBelongsToUser = async (itemId, userId) => {
+    const item = await prisma.cartItem.findUnique({
+        where: { id: itemId },
+        include: { cart: true },
+    })
+
+    if (!item) {
+        const error = new Error("Elemento no encontrado en el carrito")
+        error.statusCode = 404
+        throw error
+    }
+
+    if (item.cart.userId !== String(userId)) {
+        const error = new Error("No tienes permiso para modificar este carrito")
+        error.statusCode = 403
+        throw error
+    }
+
+    return item
+}
+
+export const removeItem = async (userId, itemId) => {
+    // comprobamos por itemId que perteneciera al carrito del usuario autenticado (IDOR).
+    await assertItemBelongsToUser(itemId, userId)
+
     return await prisma.cartItem.delete({
         where: { id: itemId },
     })
 }
 
 // Disminuir la cantidad de un item del carrito
-export const decreaseItemQuantity = async (itemId, quantity) => {
-    const item = await prisma.cartItem.findUnique({
-        where: { id: itemId },
-    })
-
-    if (!item) return null
+export const decreaseItemQuantity = async (userId, itemId, quantity) => {
+    // misma comprobación de propiedad que en removeItem.
+    const item = await assertItemBelongsToUser(itemId, userId)
 
     const newQuantity = item.quantity - quantity
 
-    // Si la cantidad llega a cero o menos, eliminamos el producto del carrito
     if (newQuantity <= 0) {
         return prisma.cartItem.delete({
             where: { id: itemId },
@@ -97,7 +124,6 @@ export const decreaseItemQuantity = async (itemId, quantity) => {
 
 export const checkout = async (userId) => {
     const normalizedUserId = String(userId)
-
     const cart = await prisma.cart.findFirst({
         where: { userId: normalizedUserId, status: "ACTIVE" },
         include: { items: true },
@@ -109,7 +135,6 @@ export const checkout = async (userId) => {
         throw error
     }
 
-    // Si el carrito existe pero no tiene ningún producto, denegamos el checkout
     if (cart.items.length === 0) {
         const error = new Error("El carrito está vacío")
         error.statusCode = 400
@@ -130,6 +155,16 @@ export const checkout = async (userId) => {
                 throw error
             }
 
+            // comprobamos que haya stock suficiente en el momento del checkout (el stock puede haber cambiado desde
+            // que se añadió al carrito), y se descuenta del stock tras confirmar la compra.
+            if (product.stock < item.quantity) {
+                const error = new Error(
+                    `Stock insuficiente para "${product.name}". Disponible: ${product.stock}, solicitado: ${item.quantity}`
+                )
+                error.statusCode = 400
+                throw error
+            }
+
             return {
                 productId: item.productId,
                 quantity: item.quantity,
@@ -143,23 +178,36 @@ export const checkout = async (userId) => {
         0,
     )
 
-    // Creamos el registro del pedido (Order) e insertamos sus líneas asociadas (OrderItem)
-    const order = await prisma.order.create({
-        data: {
-            userId: normalizedUserId,
-            total: totalValue,
-            items: {
-                create: itemsData,
+    // Usamos una transacción para que la creación del pedido, el descuento de stock y el cierre del carrito sean atómicos: si algo
+    // falla a mitad de camino, no queremos stock descontado sin pedido creado (o viceversa).
+    const order = await prisma.$transaction(async (tx) => {
+        const newOrder = await tx.order.create({
+            data: {
+                userId: normalizedUserId,
+                total: totalValue,
+                items: {
+                    create: itemsData,
+                },
             },
-        },
-        include: {
-            items: true, // Retornamos el pedido incluyendo el desglose de ítems
-        },
-    })
+            include: {
+                items: true,
+            },
+        })
 
-    await prisma.cart.update({
-        where: { id: cart.id },
-        data: { status: "CHECKED_OUT" },
+        // descontamos el stock de cada producto comprado
+        for (const item of itemsData) {
+            await tx.product.update({
+                where: { id: item.productId },
+                data: { stock: { decrement: item.quantity } },
+            })
+        }
+
+        await tx.cart.update({
+            where: { id: cart.id },
+            data: { status: "CHECKED_OUT" },
+        })
+
+        return newOrder
     })
 
     return order
@@ -167,7 +215,6 @@ export const checkout = async (userId) => {
 
 export const getOrdersByUser = async (userId) => {
     const normalizedUserId = String(userId)
-
     return await prisma.order.findMany({
         where: { userId: normalizedUserId },
         include: { items: true },
@@ -177,7 +224,6 @@ export const getOrdersByUser = async (userId) => {
 
 export const getOrderById = async (userId, orderId) => {
     const normalizedUserId = String(userId)
-
     return await prisma.order.findFirst({
         where: { id: orderId, userId: normalizedUserId },
         include: { items: true },

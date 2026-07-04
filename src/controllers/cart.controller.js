@@ -27,13 +27,11 @@ export const getCartByIdController = async (req, res, next) => {
 export const addItemController = async (req, res, next) => {
     try {
         const { productId, quantity } = req.body
-
         if (!productId || !quantity) {
             const error = new Error("productId y quantity son obligatorios")
             error.statusCode = 400
             throw error
         }
-
         const item = await addItem(String(req.user.id), productId, quantity) // Convertimos a String porque Cart.userId es String en Prisma
         res.status(201).json({
             ok: true,
@@ -71,13 +69,11 @@ export const getOrdersController = async (req, res, next) => {
 export const getOrderByIdController = async (req, res, next) => {
     try {
         const order = await getOrderById(String(req.user.id), req.params.orderId)
-
         if (!order) {
             const error = new Error("Pedido no encontrado")
             error.statusCode = 404
             throw error
         }
-
         res.json({
             ok: true,
             data: order,
@@ -90,8 +86,8 @@ export const getOrderByIdController = async (req, res, next) => {
 export const removeItemController = async (req, res, next) => {
     try {
         const { itemId } = req.params
-        await removeItem(itemId)
-
+        // se pasa req.user.id para que el service compruebe que el item pertenece al carrito de quien hace la petición (evita IDOR).
+        await removeItem(String(req.user.id), itemId)
         res.json({
             ok: true,
             message: "Elemento eliminado del carrito",
@@ -105,21 +101,13 @@ export const decreaseItemQuantityController = async (req, res, next) => {
     try {
         const { itemId } = req.params
         const { quantity } = req.body
-
         if (!quantity || typeof quantity !== "number" || quantity <= 0) {
             const error = new Error("quantity es obligatorio y debe ser un número positivo")
             error.statusCode = 400
             throw error
         }
-
-        const item = await decreaseItemQuantity(itemId, quantity)
-
-        if (!item) {
-            const error = new Error("Elemento no encontrado en el carrito")
-            error.statusCode = 404
-            throw error
-        }
-
+        // se pasa req.user.id por el mismo motivo que en removeItemController.
+        const item = await decreaseItemQuantity(String(req.user.id), itemId, quantity)
         res.json({
             ok: true,
             data: item,

@@ -1,7 +1,7 @@
 export const errorHandler = (error, req, res, next) => {
     console.error("❌ Error capturado en el handler:", error.message);
 
-    // 1. Manejo y formateo de errores específicos de base de datos de Prisma
+    // Manejo y formateo de errores específicos de base de datos de Prisma
     // Código 'P2002': Error de violación de clave única/restricción única (ej. email duplicado)
     if (error.code === 'P2002') {
         error.statusCode = 409;
@@ -14,16 +14,31 @@ export const errorHandler = (error, req, res, next) => {
         error.message = "El recurso solicitado no existe.";
     }
 
-    // 2. Extraemos el código de estado (por defecto 500 si no fue asignado previamente)
+    // traduce los errores nativos de Mongoose (usados en reviews/wishlist)
+    if (error.name === 'CastError') {
+        error.statusCode = 400;
+        error.message = "El identificador proporcionado no es válido.";
+    }
+
+    // 'ValidationError' ocurre cuando un documento no cumple las reglas del schema de Mongoose (ej. rating fuera de rango 1-10).
+    if (error.name === 'ValidationError') {
+        error.statusCode = 400;
+        error.message = Object.values(error.errors)
+            .map((e) => e.message)
+            .join(', ');
+    }
+
+    // Extraemos el código de estado (por defecto 500 si no fue asignado previamente)
     const statusCode = error.statusCode || 500;
     const message = error.message || "Error interno del servidor";
 
-    // 3. Respondemos al cliente con formato estructurado
+    // Respondemos al cliente con formato estructurado
     res.status(statusCode).json({
         ok: false,
         error: message,
         statusCode,
-        // Solo incluimos la traza detallada del error (stack trace) en entornos de desarrollo para evitar fugar datos sensibles en producción
+        // Solo incluimos la traza detallada del error (stack trace) en
+        // entornos de desarrollo para evitar fugar datos sensibles en producción
         ...(process.env.NODE_ENV === "development" && { stack: error.stack })
     });
 };
