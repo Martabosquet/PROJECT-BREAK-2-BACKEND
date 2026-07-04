@@ -32,18 +32,31 @@ app.use(helmet());
 
 // CORS: Permite peticiones y envío de cookies desde el Frontend
 const allowedOrigins = [
-  process.env.FRONTEND_URL || "http://localhost:3000",
-  "http://localhost:5500",
-  "http://127.0.0.1:5500",
+  process.env.FRONTEND_URL, // Tu URL de producción en Render
+  "http://localhost:3000",   // React / Next.js local
+  "http://localhost:5500",   // Live Server común
+  "http://127.0.0.1:5500"
 ];
 
 app.use(
   cors({
-    origin: allowedOrigins,
-    credentials: true, // importante para httpOnly
+    origin: function (origin, callback) {
+      // 1. Permitir peticiones sin origen (como Postman, Swagger local, o apps móviles)
+      if (!origin) return callback(null, true);
+
+      // 2. Permitir si el origen está en la lista blanca
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        return callback(null, true);
+      } else {
+        // Si quieres ser permisivo en desarrollo, puedes dejar pasar todo, 
+        // pero para producción esto protege tu API:
+        return callback(new Error('No permitido por CORS'));
+      }
+    },
+    credentials: true, // Crucial para que funcionen las cookies httpOnly
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-type", "Authorization"],
-  }),
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
 );
 
 // 6. MIDDLEWARE DE RATE LIMIT (Protección ante abuso/DDoS)
