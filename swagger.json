@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://project-break-2-px4e.onrender.com",
+      "url": "https://project-break-2-t70h.onrender.com",
       "description": "Servidor de producción (Render)"
     },
     {

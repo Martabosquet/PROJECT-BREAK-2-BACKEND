@@ -30,7 +30,7 @@ const app = express();
 app.use(helmet());
 
 const allowedOrigins = [
-  "https://project-break-2-px4e.onrender.com",
+  "https://project-break-2-t70h.onrender.com",
   "http://localhost:3000",
   "http://localhost:5500",
   "http://127.0.0.1:5500"
