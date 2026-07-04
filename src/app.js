@@ -27,10 +27,26 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 const app = express();
 
 // MIDDLEWARES DE SEGURIDAD (Cabeceras HTTP y CORS)
-app.use(helmet());
+const renderURL = "https://project-break-2-t70h.onrender.com";
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        // Permite que se carguen los scripts y estilos internos de Swagger
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        // IMPORTANTE: Permite que Swagger envíe peticiones de fetch a tu dominio de Render
+        connectSrc: ["'self'", renderURL],
+        imgSrc: ["'self'", "data:", "validator.swagger.io"],
+      },
+    },
+  })
+);
 
 const allowedOrigins = [
-  "https://project-break-2-t70h.onrender.com",
+  renderURL,
   "http://localhost:3000",
   "http://localhost:5500",
   "http://127.0.0.1:5500"
