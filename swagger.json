@@ -1072,7 +1072,7 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
                 "type": "object",
                 "required": [
@@ -1096,10 +1096,10 @@
                     "type": "integer",
                     "example": 50
                   },
-                  "imageUrl": {
+                  "image": {
                     "type": "string",
-                    "format": "uri",
-                    "example": "https://placehold.co/300x300?text=Camisa"
+                    "format": "binary",
+                    "description": "Archivo de imagen del producto. Se sube a Cloudinary y la URL resultante se guarda como imageUrl."
                   }
                 }
               }
@@ -1237,25 +1237,30 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Camiseta"
                   },
                   "price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 25.5
                   },
                   "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Camiseta de algodón"
                   },
                   "stock": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 50
                   },
-                  "imageUrl": {
+                  "image": {
                     "type": "string",
-                    "format": "uri"
+                    "format": "binary",
+                    "description": "Nueva imagen del producto (opcional). Si se envía, reemplaza la imagen en Cloudinary."
                   }
                 }
               }
