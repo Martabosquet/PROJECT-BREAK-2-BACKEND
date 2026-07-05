@@ -35,6 +35,10 @@
           "error": {
             "type": "string",
             "example": "Descripción del error"
+          },
+          "statusCode": {
+            "type": "integer",
+            "example": 400
           }
         }
       },
@@ -252,7 +256,19 @@
             }
           },
           "401": {
-            "description": "Token no proporcionado o inválido"
+            "description": "Token no proporcionado o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           }
         }
       }
@@ -315,14 +331,49 @@
             }
           },
           "400": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Solicitud inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "La cantidad debe ser mayor a 0 o el producto no tiene stock suficiente",
+                  "statusCode": 400
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           },
           "404": {
             "description": "Producto no encontrado",
-            "$ref": "#/components/schemas/ErrorResponse"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Producto no encontrado",
+                  "statusCode": 404
+                }
+              }
+            }
           }
         }
       }
@@ -361,10 +412,34 @@
             }
           },
           "404": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Item del carrito no encontrado",
+                  "statusCode": 404
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           }
         }
       },
@@ -430,13 +505,49 @@
             }
           },
           "400": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Solicitud inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "La cantidad debe ser mayor a 0",
+                  "statusCode": 400
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           },
           "404": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Item del carrito no encontrado",
+                  "statusCode": 404
+                }
+              }
+            }
           }
         }
       }
@@ -474,10 +585,34 @@
             }
           },
           "400": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Solicitud inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "El carrito está vacío o ya fue procesado",
+                  "statusCode": 400
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           }
         }
       }
@@ -518,7 +653,19 @@
             }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           }
         }
       }
@@ -566,10 +713,34 @@
             }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           },
           "404": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Pedido no encontrado",
+                  "statusCode": 404
+                }
+              }
+            }
           }
         }
       }
@@ -635,7 +806,34 @@
             }
           },
           "400": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Solicitud inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "El email ya está registrado o los datos son inválidos",
+                  "statusCode": 400
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto: el registro ya existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "El registro ya existe (campo duplicado).",
+                  "statusCode": 409
+                }
+              }
+            }
           }
         }
       }
@@ -684,10 +882,34 @@
             }
           },
           "400": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Solicitud inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Email o contraseña no proporcionados",
+                  "statusCode": 400
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Credenciales incorrectas",
+                  "statusCode": 401
+                }
+              }
+            }
           }
         }
       }
@@ -746,7 +968,19 @@
             }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           }
         }
       }
@@ -775,7 +1009,19 @@
             }
           },
           "403": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Acceso denegado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Acceso restringido: se requiere rol de administrador",
+                  "statusCode": 403
+                }
+              }
+            }
           }
         }
       }
@@ -881,10 +1127,34 @@
             }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           },
           "403": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Acceso denegado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Solo los administradores pueden crear productos",
+                  "statusCode": 403
+                }
+              }
+            }
           }
         }
       }
@@ -927,7 +1197,19 @@
             }
           },
           "404": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "El recurso solicitado no existe",
+                  "statusCode": 404
+                }
+              }
+            }
           }
         }
       },
@@ -1001,10 +1283,34 @@
             }
           },
           "404": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Producto no encontrado",
+                  "statusCode": 404
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           }
         }
       },
@@ -1041,10 +1347,34 @@
             }
           },
           "404": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Producto no encontrado",
+                  "statusCode": 404
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           }
         }
       }
@@ -1158,10 +1488,34 @@
             }
           },
           "400": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Solicitud inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "El rating es obligatorio y debe estar entre 1 y 10",
+                  "statusCode": 400
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           }
         }
       }
@@ -1232,16 +1586,64 @@
             }
           },
           "400": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Solicitud inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Datos de la review inválidos",
+                  "statusCode": 400
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           },
           "403": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Acceso denegado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Solo el autor de la review o un admin pueden actualizarla",
+                  "statusCode": 403
+                }
+              }
+            }
           },
           "404": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Review no encontrada",
+                  "statusCode": 404
+                }
+              }
+            }
           }
         }
       },
@@ -1278,13 +1680,64 @@
             }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           },
           "403": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Acceso denegado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Solo el autor de la review o un admin pueden eliminarla",
+                  "statusCode": 403
+                }
+              }
+            }
           },
           "404": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Review no encontrada",
+                  "statusCode": 404
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "El identificador proporcionado no es válido.",
+                  "statusCode": 400
+                }
+              }
+            }
           }
         }
       }
@@ -1325,7 +1778,19 @@
             }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           }
         }
       }
@@ -1373,10 +1838,34 @@
             }
           },
           "400": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Solicitud inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "El producto ya está en la wishlist",
+                  "statusCode": 400
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
           }
         }
       }
@@ -1415,10 +1904,49 @@
             }
           },
           "404": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Elemento de wishlist no encontrado",
+                  "statusCode": 404
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/schemas/ErrorResponse"
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "Token no proporcionado o inválido",
+                  "statusCode": 401
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "error": "El identificador proporcionado no es válido.",
+                  "statusCode": 400
+                }
+              }
+            }
           }
         }
       }
