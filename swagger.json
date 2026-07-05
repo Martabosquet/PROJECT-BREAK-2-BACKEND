@@ -199,6 +199,10 @@
             "items": {
               "$ref": "#/components/schemas/CartItem"
             }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -217,6 +221,34 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
+          }
+        }
+      },
+      "OrderItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "example": 2
+          },
+          "priceAtPurchase": {
+            "type": "number",
+            "example": 12.99
           }
         }
       }
