@@ -1,7 +1,6 @@
 export const errorHandler = (error, req, res, next) => {
     console.error("❌ Error capturado en el handler:", error.message);
 
-    // Manejo y formateo de errores específicos de base de datos de Prisma
     // Código 'P2002': Error de violación de clave única/restricción única (ej. email duplicado)
     if (error.code === 'P2002') {
         error.statusCode = 409;
@@ -37,8 +36,7 @@ export const errorHandler = (error, req, res, next) => {
         ok: false,
         error: message,
         statusCode,
-        // Solo incluimos la traza detallada del error (stack trace) en
-        // entornos de desarrollo para evitar fugar datos sensibles en producción
+        // Solo incluimos la traza detallada del error (stack trace) en entornos de desarrollo para evitar fugar datos sensibles en producción
         ...(process.env.NODE_ENV === "development" && { stack: error.stack })
     });
 };

@@ -7,8 +7,6 @@ export const dbConnection = async () => {
         console.log("Base de datos conectada correctamente")
     } catch (error) {
         console.error("Error al conectar", error)
-        // Relanzamos el error para que el try/catch de server.js pueda
-        // detener el arranque con process.exit.
         throw error
     }
 }

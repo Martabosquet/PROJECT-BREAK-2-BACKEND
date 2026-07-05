@@ -1,4 +1,4 @@
-// MÓDULO DE LISTA DE DESEOS (WISHLIST)
+// LISTA DE DESEOS: Ver lista de deseos para el usuario, añadir productos a la lista de deseos y eliminar productos de la lista de deseos
 
 import express from "express"
 import * as wishlistController from "../controllers/wishlist.controller.js"

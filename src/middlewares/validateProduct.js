@@ -1,4 +1,3 @@
-// MIDDLEWARE DE VALIDACIÓN DE PRODUCTO
 // Este middleware se encarga de validar los campos 'name', 'price' y 'stock' recibidos en el cuerpo de la petición.
 // Dado que la petición puede procesarse como FormData (Multer) para adjuntar imágenes,
 // los campos numéricos suelen enviarse como strings y aquí los validamos, convertimos y reinyectamos limpios en req.body.

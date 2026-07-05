@@ -11,15 +11,12 @@ export const createReview = async (req, res, next) => {
             throw error
         }
 
-        // Estructuramos los datos de la review combinando el cuerpo de la petición (rating, comment)
-        // con el userId extraído de la sesión (token JWT) y el productId de los parámetros
         const reviewData = {
             ...req.body,
             userId: String(req.user.id), // Normalizamos el ID de usuario a String
             productId,
         }
 
-        // Guardamos la review en MongoDB a través del servicio correspondiente
         const review = await reviewService.createReview(reviewData)
         res.status(201).json({
             ok: true,
@@ -49,7 +46,7 @@ export const updateReview = async (req, res, next) => {
         // Capturamos el identificador de la review
         const reviewId = req.params.id
 
-        // 1. Obtener la review actual desde MongoDB para verificar quién la creó
+        // Obtener la review actual desde MongoDB para verificar quién la creó
         const existingReview = await reviewService.getReviewById(reviewId)
         if (!existingReview) {
             const error = new Error("Review no encontrada")
@@ -57,14 +54,14 @@ export const updateReview = async (req, res, next) => {
             throw error
         }
 
-        // 2. Comprobar si el usuario es el creador de la review o un admin
+        // Comprobar si el usuario es el creador de la review o un admin
         if (existingReview.userId !== String(req.user.id) && req.user.role !== "admin") {
             const error = new Error("Acceso denegado. No tienes permisos para actualizar esta review.")
             error.statusCode = 403
             throw error
         }
 
-        // 3. Proceder con la actualización pasándole el cuerpo de la petición (ej. nuevos rating/comment)
+        // Proceder con la actualización pasándole el cuerpo de la petición 
         const review = await reviewService.updateReview(reviewId, req.body)
 
         // Devolvemos la review modificada al cliente
@@ -81,7 +78,6 @@ export const deleteReview = async (req, res, next) => {
     try {
         const reviewId = req.params.id
 
-        // 1. Obtener la review actual para verificar la propiedad
         const existingReview = await reviewService.getReviewById(reviewId)
         if (!existingReview) {
             const error = new Error("Review no encontrada")
@@ -89,17 +85,14 @@ export const deleteReview = async (req, res, next) => {
             throw error
         }
 
-        // 2. Comprobar si el usuario es el creador de la review o un admin
         if (existingReview.userId !== String(req.user.id) && req.user.role !== "admin") {
             const error = new Error("Acceso denegado. No tienes permisos para eliminar esta review.")
             error.statusCode = 403
             throw error
         }
 
-        // 3. Proceder a eliminar de MongoDB usando el servicio
         await reviewService.deleteReview(reviewId)
 
-        // Confirmamos al cliente la eliminación del recurso
         res.json({
             ok: true,
             message: "Review eliminada",

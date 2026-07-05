@@ -1,4 +1,4 @@
-//PUNTO 3: ESTA RUTA SE ENCARGA DE COMPROBAR QUE EL SERVIDOR ESTÁ FUNCIONANDO CORRECTAMENTE, ES DECIR, QUE LA API ESTÁ FUNCIONANDO CORRECTAMENTE
+//ESTA RUTA SE ENCARGA DE COMPROBAR QUE LA API ESTÁ FUNCIONANDO CORRECTAMENTE
 
 import express from 'express';
 
@@ -11,7 +11,7 @@ router.get("/health", (req, res) => {
         data: { status: "up" },
         uptime: process.uptime(),
         timestamp: new Date().toISOString()
-     })
+    })
 })
 
 export default router

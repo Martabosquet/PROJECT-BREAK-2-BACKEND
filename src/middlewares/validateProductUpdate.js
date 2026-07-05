@@ -1,5 +1,3 @@
-// MIDDLEWARE DE VALIDACIÓN DE PRODUCTO (PARA ACTUALIZACIONES PARCIALES)
-
 // A diferencia de validateProduct.js (pensado para la creación, donde 'name' y 'price' son obligatorios), este middleware asume que en un
 // PUT cualquier campo puede venir o no venir. Solo valida el formato de los campos que SÍ están presentes en el body, sin exigir ninguno.
 

@@ -2,13 +2,12 @@ import { productsService } from "../services/products.service.js"
 
 const getProducts = async (req, res, next) => {
   try {
-    const data = await productsService.getAllProducts() // obtenemos el array de productos a través del service
+    const data = await productsService.getAllProducts()
     res.json({
       ok: true,
       data: data,
     })
   } catch (error) {
-    // Si ocurre un error, lo delegamos al middleware de manejo de errores global
     next(error)
   }
 };
@@ -56,8 +55,6 @@ const updateProduct = async (req, res, next) => {
 const deleteProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
-    // se usa el service en vez de prisma.product.delete directo,
-    // para mantener toda la lógica de acceso a datos centralizada ahí.
     await productsService.deleteProduct(id);
     return res.json({ ok: true, message: "Producto eliminado con éxito" });
   } catch (error) {

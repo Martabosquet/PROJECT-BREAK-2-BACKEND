@@ -1,7 +1,6 @@
 // MIDDLEWARE PARA RUTAS INEXISTENTES (404)
 // Captura cualquier petición HTTP dirigida a una URL o método que no esté registrado en los enrutadores.
 export const notFound = (req, res) => {
-    // Retornamos status 404 (Not Found) al cliente con la descripción de la ruta no encontrada
     res.status(404).json({
         ok: false,
         error: `Ruta no encontrada: ${req.method} ${req.url}`,
