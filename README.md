@@ -229,16 +229,18 @@ El proyecto incluye pruebas unitarias y de integración con `jest` y `supertest`
 
 ## 📁 Estructura principal
 
+```text
 src/
-├── config/             # Conexiones a bases de datos (Prisma y Mongoose) y Cloudinary
-├── controllers/        # Procesamiento de peticiones y respuestas HTTP unificadas
-├── middlewares/        # Validadores, autenticación (JWT/RBAC) y manejador global de errores
-├── models/             # Esquemas de Mongoose para MongoDB
-├── routes/             # Definición de enrutadores de la API
-├── services/           # Lógica de negocio pesada y consultas a bases de datos
-├── tests/              # Suite de pruebas automatizadas de endpoints
-├── app.js              # Configuración de Express, middlewares globales y tuberías
-└── server.js           # Inicialización y arranque del servidor HTTP
+├── config/        # Conexiones a bases de datos (Prisma y Mongoose) y Cloudinary
+├── controllers/   # Procesamiento de peticiones y respuestas HTTP unificadas
+├── middlewares/   # Validadores, autenticación (JWT/RBAC) y manejador global de errores
+├── models/        # Esquemas de Mongoose para MongoDB
+├── routes/        # Definición de enrutadores de la API
+├── services/      # Lógica de negocio pesada y consultas a bases de datos
+├── tests/         # Suite de pruebas automatizadas de endpoints
+├── app.js         # Configuración de Express, middlewares globales y tuberías
+└── server.js      # Inicialización y arranque del servidor HTTP
+
 ---
 
 ## 💡 Notas importantes
