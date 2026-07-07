@@ -240,7 +240,7 @@ src/
 ├── tests/         # Suite de pruebas automatizadas de endpoints
 ├── app.js         # Configuración de Express, middlewares globales y tuberías
 └── server.js      # Inicialización y arranque del servidor HTTP
-```text
+```
 ---
 
 ## 💡 Notas importantes
