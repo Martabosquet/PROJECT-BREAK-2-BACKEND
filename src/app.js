@@ -49,7 +49,8 @@ const allowedOrigins = [
   renderURL,
   "http://localhost:3000",
   "http://localhost:5500",
-  "http://127.0.0.1:5500"
+  "http://127.0.0.1:5500",
+  "http://localhost:5173",
 ];
 
 app.use(
@@ -76,7 +77,7 @@ app.use(
 // MIDDLEWARE DE RATE LIMIT (Protección ante abuso/DDoS)
 const limiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 10,
+  max: 1000, //CUIDADO ANTES ESTABA EN 10, LO HE CAMBIADO PARA QUE NO ME SALTE TODO EL RATO
   message: {
     ok: false,
     error: "Demasiadas peticiones. Inténtalo de nuevo en 1 minuto.",
