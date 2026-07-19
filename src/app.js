@@ -49,30 +49,30 @@ const allowedOrigins = [
   renderURL,
   "http://localhost:3000",
   "http://localhost:5500",
-  "http://127.0.0.1:5500",
-  "http://localhost:5173",
-];
+  "http://127.0.0.1:5500"
+].filter(Boolean); // Limpia valores undefined o null
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // 1. Permitir peticiones sin origen (como Postman, Swagger local, o apps móviles)
+      // 1. Permitir peticiones sin origen (Postman, etc.)
       if (!origin) return callback(null, true);
 
-      // 2. Permitir si el origen está en la lista blanca
-      if (allowedOrigins.indexOf(origin) !== -1) {
+      // 2. Permitir si el origen es de desarrollo local (cualquier puerto de localhost o 127.0.0.1)
+      const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
+      if (isLocalhost || allowedOrigins.indexOf(origin) !== -1) {
         return callback(null, true);
       } else {
-        // Si quieres ser permisivo en desarrollo, puedes dejar pasar todo, 
-        // pero para producción esto protege tu API:
-        return callback(new Error('No permitido por CORS'));
+        return callback(null, false);
       }
     },
-    credentials: true, // Crucial para que funcionen las cookies httpOnly
+    credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 
 // MIDDLEWARE DE RATE LIMIT (Protección ante abuso/DDoS)
 const limiter = rateLimit({

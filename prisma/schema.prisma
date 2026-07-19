@@ -19,6 +19,7 @@ model Product {
 
 model User {
   id        Int      @id @default(autoincrement())
+  name      String?  // opcional para no romper los usuarios ya existentes
   email     String   @unique
   password  String
   role      String   @default("user")

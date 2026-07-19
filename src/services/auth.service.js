@@ -2,7 +2,7 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import prisma from "../config/prismaClient.js"
 
-const registerUser = async (email, password, role) => {
+const registerUser = async (name, email, password, role) => {
   // Validamos que el email no esté ya registrado en la base de datos
   const userExists = await prisma.user.findUnique({
     where: { email },
@@ -20,6 +20,7 @@ const registerUser = async (email, password, role) => {
   // Insertamos el nuevo registro de usuario en PostgreSQL
   const newUser = await prisma.user.create({
     data: {
+      name,        // <-- NUEVO: guardamos el nombre recibido del formulario
       email,
       password: hashedPassword,
       role,
@@ -27,6 +28,7 @@ const registerUser = async (email, password, role) => {
     // Seleccionamos específicamente qué campos retornar para evitar enviar el hash de la contraseña en la respuesta
     select: {
       id: true,
+      name: true,   // <-- NUEVO: lo devolvemos también en la respuesta del registro
       email: true,
       role: true,
       createdAt: true,
@@ -66,7 +68,17 @@ const login = async (email, password) => {
     { expiresIn: "2h" },
   )
 
-  return token
+  // CAMBIO: en vez de devolver solo el token, devolvemos también los datos
+  // del usuario (sin la contraseña) para que el controlador pueda mandarlos al frontend
+  return {
+    token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+  }
 }
 
 export const authService = {
