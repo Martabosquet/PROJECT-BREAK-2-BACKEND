@@ -20,7 +20,7 @@ const registerUser = async (name, email, password, role) => {
   // Insertamos el nuevo registro de usuario en PostgreSQL
   const newUser = await prisma.user.create({
     data: {
-      name,        // <-- NUEVO: guardamos el nombre recibido del formulario
+      name,  //guardamos el nombre, que nos servirá para mostrarlo en el frontend y para personalizar la experiencia del usuario
       email,
       password: hashedPassword,
       role,
@@ -28,7 +28,7 @@ const registerUser = async (name, email, password, role) => {
     // Seleccionamos específicamente qué campos retornar para evitar enviar el hash de la contraseña en la respuesta
     select: {
       id: true,
-      name: true,   // <-- NUEVO: lo devolvemos también en la respuesta del registro
+      name: true,   // lo devolvemos también en la respuesta del registro
       email: true,
       role: true,
       createdAt: true,
@@ -68,7 +68,7 @@ const login = async (email, password) => {
     { expiresIn: "2h" },
   )
 
-  // CAMBIO: en vez de devolver solo el token, devolvemos también los datos
+  // en vez de devolver solo el token, devolvemos también los datos
   // del usuario (sin la contraseña) para que el controlador pueda mandarlos al frontend
   return {
     token,
