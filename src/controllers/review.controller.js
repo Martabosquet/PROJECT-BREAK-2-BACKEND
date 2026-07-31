@@ -13,7 +13,8 @@ export const createReview = async (req, res, next) => {
 
         const reviewData = {
             ...req.body,
-            userId: String(req.user.id), // Normalizamos el ID de usuario a String
+            userId: String(req.user.id),
+            userName: req.user.name || req.body.userName || "Anónimo", // Añadimos esto para asegurar que el nombre viaja al servicio
             productId,
         }
 
