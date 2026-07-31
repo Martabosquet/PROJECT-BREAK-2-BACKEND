@@ -5,13 +5,21 @@ export const getCart = async (userId) => {
     const normalizedUserId = String(userId)
     let cart = await prisma.cart.findFirst({
         where: { userId: normalizedUserId, status: "ACTIVE" },
-        include: { items: true },
+        include: {
+            items: {
+                include: { product: true },
+            },
+        },
     })
 
     if (!cart) {
         cart = await prisma.cart.create({
             data: { userId: normalizedUserId },
-            include: { items: true },
+            include: {
+                items: {
+                    include: { product: true },
+                },
+            },
         })
     }
 
