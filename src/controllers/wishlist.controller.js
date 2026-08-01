@@ -1,58 +1,85 @@
-import * as wishlistService from "../services/wishlist.service.js"
+import { Wishlist } from "../models/wishlist.model.js";
 
-export const addToWishlist = async (req, res, next) => {
+// Controlador unificado para alternar (Añadir / Eliminar) de la wishlist
+export const toggleWishlist = async (req, res, next) => {
     try {
-        // Extraemos de forma segura el userId del token JWT previamente validado (evita suplantación en body)
-        const userId = String(req.user.id)
-        const { productId } = req.params
+        const userId = String(req.user.id);
+        const { productId } = req.params;
 
-        // Validación básica: aseguramos que venga el productId en los parámetros
         if (!productId) {
-            const error = new Error("El id del producto es obligatorio")
-            error.statusCode = 400
-            throw error
+            const error = new Error("El id del producto es obligatorio");
+            error.statusCode = 400;
+            throw error;
         }
 
-        // Llamamos al servicio para guardar la wishlist en MongoDB (el servicio valida que el producto exista en PostgreSQL)
-        const wishlistItem = await wishlistService.addToWishlist(userId, productId)
-        res.status(201).json({
-            ok: true,
-            data: wishlistItem,
-        })
+        // 🟢 Buscamos si ya existe el registro contemplando ambas posibles claves (productId o product)
+        const existingItem = await Wishlist.findOne({ 
+            userId, 
+            $or: [{ productId: productId }, { product: productId }] 
+        });
+
+        if (existingItem) {
+            // Si ya existe, lo eliminamos de forma segura por su _id
+            await Wishlist.findByIdAndDelete(existingItem._id);
+            return res.json({
+                ok: true,
+                message: "Producto eliminado de la wishlist",
+                action: "removed",
+            });
+        } else {
+            // Si no existe, lo creamos
+            const newItem = await Wishlist.create({ userId, productId });
+            return res.status(201).json({
+                ok: true,
+                message: "Producto añadido a la wishlist",
+                action: "added",
+                data: newItem,
+            });
+        }
     } catch (error) {
         next(error);
     }
-}
+};
 
 export const getWishlistByUser = async (req, res, next) => {
     try {
-        // Extraemos de forma segura el userId desde la sesión de JWT descodificada
-        const userId = String(req.user.id)
-
-        const wishlistItems = await wishlistService.getWishlistByUser(userId)
+        const userId = String(req.user.id);
+        const wishlistItems = await Wishlist.find({ userId });
         res.json({
             ok: true,
             data: wishlistItems,
-        })
+        });
     } catch (error) {
         next(error);
     }
-}
+};
 
 export const removeFromWishlist = async (req, res, next) => {
     try {
-        const wishlistItem = await wishlistService.removeFromWishlist(req.params.id)
+        const userId = String(req.user.id);
+        const targetId = req.params.id || req.params.productId;
+
+        // Buscamos y eliminamos coincidiendo el usuario y cualquiera de las dos propiedades posibles
+        const wishlistItem = await Wishlist.findOneAndDelete({
+            userId,
+            $or: [
+                { _id: targetId.match(/^[0-9a-fA-F]{24}$/) ? targetId : null }, // Si es un ObjectId válido de Mongoose
+                { productId: targetId },
+                { product: targetId }
+            ].filter(condition => Object.values(condition)[0] !== null)
+        });
 
         if (!wishlistItem) {
-            const error = new Error("Elemento no encontrado")
-            error.statusCode = 404
-            throw error
+            const error = new Error("Elemento no encontrado en la wishlist");
+            error.statusCode = 404;
+            throw error;
         }
+
         res.json({
             ok: true,
             message: "Elemento eliminado de la wishlist",
-        })
+        });
     } catch (error) {
         next(error);
     }
-}
+};

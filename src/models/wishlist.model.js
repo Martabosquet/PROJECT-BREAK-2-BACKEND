@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const wishlistSchema = new mongoose.Schema({
     userId: {
@@ -13,6 +13,9 @@ const wishlistSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
-})
+});
 
-export const Wishlist = mongoose.model("Wishlist", wishlistSchema)
+// 🟢 Creamos un índice compuesto único para evitar que se repita la combinación de usuario y producto
+wishlistSchema.index({ userId: 1, productId: 1 }, { unique: true });
+
+export const Wishlist = mongoose.model("Wishlist", wishlistSchema);
