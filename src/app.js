@@ -18,6 +18,7 @@ import authRouter from "./routes/auth.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
 import wishlistRoutes from "./routes/wishlist.routes.js";
 import cartRouter from "./routes/cart.routes.js";
+import orderRouter from './routes/order.routes.js';
 
 // IMPORTACIONES DE MIDDLEWARES PERSONALIZADOS (Control de errores/404)
 import { notFound } from "./middlewares/notFound.js";
@@ -117,6 +118,7 @@ app.use("/", productRouter); // o se lo pongo aquí /api/products o se lo pongo 
 app.use("/", authRouter);
 app.use("/", indexRouter);
 app.use("/", cartRouter);
+app.use("/", orderRouter);
 
 // MIDDLEWARES FINALES (Manejo del ciclo de vida de peticiones fallidas)
 app.use(notFound);

@@ -53,11 +53,16 @@ model CartItem {
 }
 
 model Order {
-  id        String   @id @default(uuid())
-  userId    String
-  total     Float
-  createdAt DateTime @default(now()) @map("created_at")
-  items     OrderItem[]
+  id              String      @id @default(uuid())
+  userId          String
+  total           Float
+  street          String
+  city            String
+  postalCode      String
+  country         String
+  
+  createdAt       DateTime    @default(now()) @map("created_at")
+  items           OrderItem[]
 
   @@map("orders")
 }
