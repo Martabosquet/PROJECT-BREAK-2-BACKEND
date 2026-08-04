@@ -1,9 +1,9 @@
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import prisma from "../config/prismaClient.js"
+import cloudinary from "../config/cloudinary.js";
 
 const registerUser = async (name, email, password, role) => {
-  // Validamos que el email no esté ya registrado en la base de datos
   const userExists = await prisma.user.findUnique({
     where: { email },
   })
@@ -14,21 +14,18 @@ const registerUser = async (name, email, password, role) => {
     throw error
   }
 
-  // Encriptamos la contraseña usando bcrypt con un factor de 10
   const hashedPassword = await bcrypt.hash(password, 10)
 
-  // Insertamos el nuevo registro de usuario en PostgreSQL
   const newUser = await prisma.user.create({
     data: {
-      name,  //guardamos el nombre, que nos servirá para mostrarlo en el frontend y para personalizar la experiencia del usuario
+      name,
       email,
       password: hashedPassword,
       role,
     },
-    // Seleccionamos específicamente qué campos retornar para evitar enviar el hash de la contraseña en la respuesta
     select: {
       id: true,
-      name: true,   // lo devolvemos también en la respuesta del registro
+      name: true,
       email: true,
       role: true,
       createdAt: true,
@@ -49,7 +46,6 @@ const login = async (email, password) => {
     throw error
   }
 
-  // Comparamos la contraseña en texto plano enviada con el hash encriptado de la BD
   const isValid = await bcrypt.compare(password, user.password)
 
   if (!isValid) {
@@ -68,8 +64,6 @@ const login = async (email, password) => {
     { expiresIn: "2h" },
   )
 
-  // en vez de devolver solo el token, devolvemos también los datos
-  // del usuario (sin la contraseña) para que el controlador pueda mandarlos al frontend
   return {
     token,
     user: {
@@ -81,7 +75,62 @@ const login = async (email, password) => {
   }
 }
 
+const updateProfileUser = async (userId, dataToUpdate) => {
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: dataToUpdate,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      profileImage: true,
+    },
+  });
+
+  return updatedUser;
+};
+
+const updatePasswordUser = async (userId, currentPassword, newPassword) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    const error = new Error("Usuario no encontrado");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const isValid = await bcrypt.compare(currentPassword, user.password);
+  if (!isValid) {
+    const error = new Error("La contraseña actual es incorrecta");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { password: hashedNewPassword },
+  });
+};
+
+const deleteUserAccount = async (userId) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    const error = new Error("Usuario no encontrado");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  await prisma.user.delete({
+    where: { id: userId },
+  });
+};
+
 export const authService = {
   registerUser,
-  login
+  login,
+  updateProfileUser,
+  updatePasswordUser,
+  deleteUserAccount,
 }
