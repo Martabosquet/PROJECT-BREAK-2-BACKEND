@@ -18,6 +18,8 @@ router.get("/api/me", authMiddleware, authController.getProfile);
 router.put("/api/me", authMiddleware, upload.single('profileImage'), authController.updateProfile);  // AQUÍ AÑADIMOS upload.single('profileImage') para que capture el archivo y lo suba a Cloudinary
 router.put("/api/me/password", authMiddleware, authController.updatePassword); // Para cambiar contraseña
 router.delete("/api/me", authMiddleware, authController.deleteAccount); // Para eliminar cuenta
+router.patch("/api/profile",authMiddleware,upload.single("profileImage"),authController.updateProfile);  // Actualizar datos personales
+router.patch("/api/profile/cinephile",authMiddleware,authController.updateCinephileProfile);  // Actualizar perfil cinéfilo
 
 // Ruta restringida por rol (Panel de admin)
 router.get(

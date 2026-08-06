@@ -19,13 +19,21 @@ model Product {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String?  // opcional para no romper los usuarios ya existentes
-  email     String   @unique
-  password  String
-  role      String   @default("user")
-  profileImage String?
-  createdAt DateTime @default(now()) @map("created_at")
+  id                Int      @id @default(autoincrement())
+  name              String
+  email             String   @unique
+  password          String
+  role              String   @default("user")
+  profileImage      String?
+
+  // Perfil cinéfilo
+  favoriteGenre     String?
+  favoriteMovie     String?
+  favoriteDirector  String?
+  bio               String?  @db.Text
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 }
 
 // Representa el carrito activo

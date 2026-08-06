@@ -117,7 +117,7 @@ app.use(wishlistRoutes);
 app.use("/", productRouter); // o se lo pongo aquí /api/products o se lo pongo en routes directamente, yo he decidido ponérselo en routes directamente
 app.use("/", authRouter);
 app.use("/", indexRouter);
-app.use("/", cartRouter);
+app.use("/", cartRouter); 
 app.use("/", orderRouter);
 
 // MIDDLEWARES FINALES (Manejo del ciclo de vida de peticiones fallidas)

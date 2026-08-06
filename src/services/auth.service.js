@@ -71,6 +71,12 @@ const login = async (email, password) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      profileImage: user.profileImage,
+
+      favoriteGenre: user.favoriteGenre,
+      favoriteDirector: user.favoriteDirector,
+      favoriteMovie: user.favoriteMovie,
+      bio: user.bio,
     },
   }
 }
@@ -85,6 +91,12 @@ const updateProfileUser = async (userId, dataToUpdate) => {
       email: true,
       role: true,
       profileImage: true,
+
+      // Perfil cinéfilo
+      favoriteGenre: true,
+      favoriteDirector: true,
+      favoriteMovie: true,
+      bio: true,
     },
   });
 
@@ -127,10 +139,31 @@ const deleteUserAccount = async (userId) => {
   });
 };
 
+const updateCinephileProfile = async(userId,data)=>{
+
+  return prisma.user.update({
+    where:{
+      id:userId,
+    },
+
+    data,
+
+    select:{
+      id:true,
+      favoriteGenre:true,
+      favoriteDirector:true,
+      favoriteMovie:true,
+      bio:true,
+    },
+  });
+
+};
+
 export const authService = {
   registerUser,
   login,
   updateProfileUser,
   updatePasswordUser,
   deleteUserAccount,
+  updateCinephileProfile,
 }
