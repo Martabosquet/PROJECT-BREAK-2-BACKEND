@@ -363,7 +363,32 @@ const getAdmin = (req,res)=>{
   });
 };
 
+const getPublicProfile = async (req, res, next) => {
+  try {
+    const userId = Number(req.params.userId);
 
+    if (Number.isNaN(userId)) {
+      const error = new Error("El id de usuario no es válido");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const user = await authService.getPublicProfile(userId);
+
+    if (!user) {
+      const error = new Error("Usuario no encontrado");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    res.json({
+      ok: true,
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const authController = {
   register,
@@ -375,4 +400,5 @@ export const authController = {
   updateCinephileProfile,
   updatePassword,
   deleteAccount,
+  getPublicProfile,
 };

@@ -20,6 +20,7 @@ router.put("/api/me/password", authMiddleware, authController.updatePassword); /
 router.delete("/api/me", authMiddleware, authController.deleteAccount); // Para eliminar cuenta
 router.patch("/api/profile",authMiddleware,upload.single("profileImage"),authController.updateProfile);  // Actualizar datos personales
 router.patch("/api/profile/cinephile",authMiddleware,authController.updateCinephileProfile);  // Actualizar perfil cinéfilo
+router.get("/api/users/:userId", authMiddleware, authController.getPublicProfile);  // Obtener perfil público de otro usuario
 
 // Ruta restringida por rol (Panel de admin)
 router.get(

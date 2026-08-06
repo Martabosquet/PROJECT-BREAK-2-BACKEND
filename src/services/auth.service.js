@@ -159,6 +159,24 @@ const updateCinephileProfile = async(userId,data)=>{
 
 };
 
+const getPublicProfile = async (userId) => {
+  return prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      name: true,
+      profileImage: true,
+      favoriteGenre: true,
+      favoriteMovie: true,
+      favoriteDirector: true,
+      bio: true,
+      createdAt: true,
+    },
+  });
+};
+
 export const authService = {
   registerUser,
   login,
@@ -166,4 +184,5 @@ export const authService = {
   updatePasswordUser,
   deleteUserAccount,
   updateCinephileProfile,
+  getPublicProfile,
 }
