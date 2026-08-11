@@ -39,18 +39,20 @@ describe("authService", () => {
                 createdAt: new Date(),
             })
 
-            const result = await authService.registerUser("test@example.com", "password123", "user")
+            const result = await authService.registerUser("Test User", "test@example.com", "password123", "user")
 
             expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { email: "test@example.com" } })
             expect(bcrypt.hash).toHaveBeenCalledWith("password123", 10)
             expect(prisma.user.create).toHaveBeenCalledWith({
                 data: {
+                    name: "Test User",
                     email: "test@example.com",
                     password: "hashed-password",
                     role: "user",
                 },
                 select: {
                     id: true,
+                    name: true,
                     email: true,
                     role: true,
                     createdAt: true,
@@ -62,7 +64,7 @@ describe("authService", () => {
         it("throws when the email is already registered", async () => {
             prisma.user.findUnique.mockResolvedValue({ id: "user-id", email: "test@example.com" })
 
-            await expect(authService.registerUser("test@example.com", "password123", "user")).rejects.toThrow(
+            await expect(authService.registerUser("Test User", "test@example.com", "password123", "user")).rejects.toThrow(
                 "El email ya está registrado",
             )
         })
@@ -79,7 +81,7 @@ describe("authService", () => {
             bcrypt.compare.mockResolvedValue(true)
             jwt.sign.mockReturnValue("valid-token")
 
-            const token = await authService.login("test@example.com", "password123")
+            const result = await authService.login("test@example.com", "password123")
 
             expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { email: "test@example.com" } })
             expect(bcrypt.compare).toHaveBeenCalledWith("password123", "crypted")
@@ -92,7 +94,7 @@ describe("authService", () => {
                 "test-secret",
                 { expiresIn: "2h" },
             )
-            expect(token).toBe("valid-token")
+            expect(result.token).toBe("valid-token")
         })
 
         it("throws when the user does not exist", async () => {

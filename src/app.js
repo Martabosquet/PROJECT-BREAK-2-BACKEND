@@ -19,12 +19,15 @@ import reviewRoutes from "./routes/review.routes.js";
 import wishlistRoutes from "./routes/wishlist.routes.js";
 import cartRouter from "./routes/cart.routes.js";
 import orderRouter from './routes/order.routes.js';
+import paymentRouter from './routes/payment.routes.js';
 
 // IMPORTACIONES DE MIDDLEWARES PERSONALIZADOS (Control de errores/404)
 import { notFound } from "./middlewares/notFound.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 
 // INICIALIZACIÓN DE LA APLICACIÓN
+import { stripeWebhookController } from './controllers/webhook.controller.js';
+
 const app = express();
 
 // MIDDLEWARES DE SEGURIDAD (Cabeceras HTTP y CORS)
@@ -89,6 +92,13 @@ if (process.env.NODE_ENV !== "test") app.use(limiter); // Si lo dejo activo para
 
 app.set('trust proxy', 1);
 
+// usa express.raw en vez de JSON, solo para este endpoint de los webhooks (ANTES de app.use(express.json))
+app.post(
+  '/api/webhooks/stripe',
+  express.raw({ type: 'application/json' }),
+  stripeWebhookController
+);
+
 // MIDDLEWARES DE PARSEO (Lectura y formateo de datos entrantes)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -117,8 +127,9 @@ app.use(wishlistRoutes);
 app.use("/", productRouter); // o se lo pongo aquí /api/products o se lo pongo en routes directamente, yo he decidido ponérselo en routes directamente
 app.use("/", authRouter);
 app.use("/", indexRouter);
-app.use("/", cartRouter); 
+app.use("/", cartRouter);
 app.use("/", orderRouter);
+app.use("/", paymentRouter);
 
 // MIDDLEWARES FINALES (Manejo del ciclo de vida de peticiones fallidas)
 app.use(notFound);

@@ -1,8 +1,8 @@
-import { getCart, getCartById, addItem, removeItem, decreaseItemQuantity, checkout, getOrdersByUser, getOrderById } from "../services/cart.service.js"
+import { getCart, getCartById, addItem, removeItem, decreaseItemQuantity } from "../services/cart.service.js"
 
 export const getCartController = async (req, res, next) => {
     try {
-        const cart = await getCart(String(req.user.id)) // Convertimos a String porque Cart.userId es String en Prisma
+        const cart = await getCart(String(req.user.id))
         res.json({
             ok: true,
             data: cart,
@@ -14,7 +14,16 @@ export const getCartController = async (req, res, next) => {
 
 export const getCartByIdController = async (req, res, next) => {
     try {
-        const cart = await getCartById(req.params.cartId)
+        const { cartId } = req.params
+
+        const cart = await getCartById(cartId)
+
+        if (!cart) {
+            const error = new Error("Carrito no encontrado")
+            error.statusCode = 404
+            throw error
+        }
+
         res.json({
             ok: true,
             data: cart,
@@ -32,7 +41,7 @@ export const addItemController = async (req, res, next) => {
             error.statusCode = 400
             throw error
         }
-        const item = await addItem(String(req.user.id), productId, quantity) // Convertimos a String porque Cart.userId es String en Prisma
+        const item = await addItem(String(req.user.id), productId, quantity)
         res.status(201).json({
             ok: true,
             data: item,
@@ -42,51 +51,9 @@ export const addItemController = async (req, res, next) => {
     }
 }
 
-export const checkoutController = async (req, res, next) => {
-    try {
-        const order = await checkout(String(req.user.id)) // Convertimos a String porque Cart.userId es String en Prisma
-        res.json({
-            ok: true,
-            data: order,
-        })
-    } catch (error) {
-        next(error);
-    }
-}
-
-export const getOrdersController = async (req, res, next) => {
-    try {
-        const orders = await getOrdersByUser(String(req.user.id))
-        res.json({
-            ok: true,
-            data: orders,
-        })
-    } catch (error) {
-        next(error)
-    }
-}
-
-export const getOrderByIdController = async (req, res, next) => {
-    try {
-        const order = await getOrderById(String(req.user.id), req.params.orderId)
-        if (!order) {
-            const error = new Error("Pedido no encontrado")
-            error.statusCode = 404
-            throw error
-        }
-        res.json({
-            ok: true,
-            data: order,
-        })
-    } catch (error) {
-        next(error)
-    }
-}
-
 export const removeItemController = async (req, res, next) => {
     try {
         const { itemId } = req.params
-        // se pasa req.user.id para que el service compruebe que el item pertenece al carrito de quien hace la petición (evita IDOR).
         await removeItem(String(req.user.id), itemId)
         res.json({
             ok: true,
@@ -106,7 +73,6 @@ export const decreaseItemQuantityController = async (req, res, next) => {
             error.statusCode = 400
             throw error
         }
-        // se pasa req.user.id por el mismo motivo que en removeItemController.
         const item = await decreaseItemQuantity(String(req.user.id), itemId, quantity)
         res.json({
             ok: true,

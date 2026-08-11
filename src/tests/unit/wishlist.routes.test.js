@@ -5,6 +5,7 @@ import { jest } from "@jest/globals"
 const wishlistController = {
   getWishlistByUser: jest.fn((req, res) => res.json({ ok: true, data: [] })),
   addToWishlist: jest.fn((req, res) => res.status(201).json({ ok: true, data: { id: "wishlist-1" } })),
+  toggleWishlist: jest.fn((req, res) => res.status(201).json({ ok: true, data: { id: "wishlist-1" } })),
   removeFromWishlist: jest.fn((req, res) => res.json({ ok: true, message: "Eliminado" })),
 }
 
@@ -67,13 +68,13 @@ describe("💝 WISHLIST ENDPOINTS", () => {
   })
 
   describe("DELETE /api/wishlist/:id - Eliminar producto de lista de deseos", () => {
-    test("deniega acceso a usuario normal", async () => {
+    test("permite acceso a usuario normal autenticado", async () => {
       const res = await request(app)
         .delete("/api/wishlist/wishlist-1")
         .set("Authorization", `Bearer ${userToken}`)
 
-      expect(res.statusCode).toBe(403)
-      expect(res.body.ok).toBe(false)
+      expect(res.statusCode).toBe(200)
+      expect(res.body.ok).toBe(true)
     })
 
     test("permite acceso a admin", async () => {

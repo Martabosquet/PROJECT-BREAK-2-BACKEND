@@ -69,6 +69,8 @@ model Order {
   city            String
   postalCode      String
   country         String
+  stripePaymentIntentId String? @unique 
+  status          String      @default("PENDING")  // PENDING | PAID | FAILED
   
   createdAt       DateTime    @default(now()) @map("created_at")
   items           OrderItem[]
