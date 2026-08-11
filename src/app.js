@@ -32,6 +32,7 @@ const app = express();
 
 // MIDDLEWARES DE SEGURIDAD (Cabeceras HTTP y CORS)
 const renderURL = "https://project-break-2-t70h.onrender.com";
+const netlifyURL = "https://projectbreak3.netlify.app";
 
 app.use(
   helmet({
@@ -42,7 +43,7 @@ app.use(
         scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         // IMPORTANTE: Permite que Swagger envíe peticiones de fetch a tu dominio de Render
-        connectSrc: ["'self'", renderURL],
+        connectSrc: ["'self'", renderURL, netlifyURL],
         imgSrc: ["'self'", "data:", "validator.swagger.io"],
       },
     },
@@ -51,6 +52,7 @@ app.use(
 
 const allowedOrigins = [
   renderURL,
+  netlifyURL,
   "http://localhost:3000",
   "http://localhost:5500",
   "http://127.0.0.1:5500"
