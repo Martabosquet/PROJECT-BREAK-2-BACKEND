@@ -4,12 +4,10 @@ import { jest } from "@jest/globals"
 
 const cartController = {
   getCartController: jest.fn((req, res) => res.json({ ok: true, data: { items: [] } })),
+  getCartByIdController: jest.fn((req, res) => res.json({ ok: true, data: { id: req.params.cartId } })),
   addItemController: jest.fn((req, res) => res.status(201).json({ ok: true, data: { id: "cart-item-1" } })),
   removeItemController: jest.fn((req, res) => res.json({ ok: true, message: "Elemento eliminado" })),
   decreaseItemQuantityController: jest.fn((req, res) => res.json({ ok: true, data: { id: "cart-item-1", quantity: 1 } })),
-  checkoutController: jest.fn((req, res) => res.json({ ok: true, data: { id: "order-1" } })),
-  getOrdersController: jest.fn((req, res) => res.json({ ok: true, data: [] })),
-  getOrderByIdController: jest.fn((req, res) => res.json({ ok: true, data: { id: req.params.orderId } })),
 }
 
 await jest.unstable_mockModule("../../controllers/cart.controller.js", () => ({
@@ -22,6 +20,7 @@ const jwt = (await import("jsonwebtoken")).default
 const { default: app } = await import("../../app.js")
 
 const token = jwt.sign({ id: "user-1", email: "user@example.com", role: "user" }, process.env.JWT_SECRET, { expiresIn: "2h" })
+const adminToken = jwt.sign({ id: "admin-1", email: "admin@example.com", role: "admin" }, process.env.JWT_SECRET, { expiresIn: "2h" })
 
 describe("🛒 CART ENDPOINTS", () => {
   beforeEach(() => {
@@ -97,56 +96,29 @@ describe("🛒 CART ENDPOINTS", () => {
     })
   })
 
-  describe("POST /api/cart/checkout - Realizar compra", () => {
+  describe("GET /api/carts/:cartId - Obtener carrito por id (solo admin)", () => {
     test("requiere autenticación", async () => {
-      const res = await request(app).post("/api/cart/checkout")
+      const res = await request(app).get("/api/carts/cart-1")
       expect([401, 403]).toContain(res.statusCode)
     })
 
-    test("crea orden con token válido", async () => {
+    test("rechaza a un usuario sin rol admin", async () => {
       const res = await request(app)
-        .post("/api/cart/checkout")
+        .get("/api/carts/cart-1")
         .set("Authorization", `Bearer ${token}`)
+
+      expect(res.statusCode).toBe(403)
+    })
+
+    test("devuelve el carrito con token de admin", async () => {
+      const res = await request(app)
+        .get("/api/carts/cart-1")
+        .set("Authorization", `Bearer ${adminToken}`)
 
       expect(res.statusCode).toBe(200)
       expect(res.body.ok).toBe(true)
-      expect(res.body.data.id).toBe("order-1")
-    })
-  })
-
-  describe("GET /api/orders - Historial de pedidos del usuario", () => {
-    test("requiere autenticación", async () => {
-      const res = await request(app).get("/api/orders")
-      expect([401, 403]).toContain(res.statusCode)
-    })
-
-    test("devuelve lista de órdenes con token válido", async () => {
-      const res = await request(app)
-        .get("/api/orders")
-        .set("Authorization", `Bearer ${token}`)
-
-      expect(res.statusCode).toBe(200)
-      expect(res.body.ok).toBe(true)
-      expect(Array.isArray(res.body.data)).toBe(true)
-      expect(cartController.getOrdersController).toHaveBeenCalled()
-    })
-  })
-
-  describe("GET /api/orders/:orderId - Obtener pedido por ID", () => {
-    test("requiere autenticación", async () => {
-      const res = await request(app).get("/api/orders/order-1")
-      expect([401, 403]).toContain(res.statusCode)
-    })
-
-    test("devuelve la orden con token válido", async () => {
-      const res = await request(app)
-        .get("/api/orders/order-1")
-        .set("Authorization", `Bearer ${token}`)
-
-      expect(res.statusCode).toBe(200)
-      expect(res.body.ok).toBe(true)
-      expect(res.body.data.id).toBe("order-1")
-      expect(cartController.getOrderByIdController).toHaveBeenCalled()
+      expect(res.body.data.id).toBe("cart-1")
+      expect(cartController.getCartByIdController).toHaveBeenCalled()
     })
   })
 })
