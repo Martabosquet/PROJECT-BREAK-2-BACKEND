@@ -30,6 +30,13 @@ const register = async (req, res, next) => {
 };
 
 
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 2 * 60 * 60 * 1000,
+});
+
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -42,12 +49,7 @@ const login = async (req, res, next) => {
 
     const { token, user } = await authService.login(email, password);
 
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 2 * 60 * 60 * 1000,
-    };
+    const cookieOptions = getCookieOptions();
 
     res.cookie("token", token, cookieOptions);
 
@@ -71,7 +73,8 @@ const login = async (req, res, next) => {
 
 const logout = (req, res, next) => {
   try {
-    res.clearCookie("token");
+    const cookieOptions = getCookieOptions();
+    res.clearCookie("token", cookieOptions);
 
     res.json({
       ok: true,
@@ -340,7 +343,8 @@ const deleteAccount = async(req,res,next)=>{
     await authService.deleteUserAccount(userId);
 
 
-    res.clearCookie("token");
+    const cookieOptions = getCookieOptions();
+    res.clearCookie("token", cookieOptions);
 
 
     res.json({

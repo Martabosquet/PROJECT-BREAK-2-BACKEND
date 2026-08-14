@@ -82,11 +82,11 @@ app.use(
 
 // MIDDLEWARE DE RATE LIMIT (Protección ante abuso/DDoS)
 const limiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 1000, //CUIDADO ANTES ESTABA EN 10, LO HE CAMBIADO PARA QUE NO ME SALTE TODO EL RATO
+  windowMs: 15 * 60 * 1000, // Ventana de 15 minutos
+  max: 300, // Máximo 300 peticiones por ventana de 15 minutos por IP
   message: {
     ok: false,
-    error: "Demasiadas peticiones. Inténtalo de nuevo en 1 minuto.",
+    error: "Demasiadas peticiones. Inténtalo de nuevo en unos minutos.",
   },
 });
 
