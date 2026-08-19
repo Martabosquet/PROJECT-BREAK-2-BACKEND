@@ -39,8 +39,7 @@ export const getUserOrders = async (req, res, next) => {
     }
 };
 
-// Usado por la página de éxito para comprobar si el webhook ya procesó el
-// pago y creó el pedido. Puede devolver 404 legítimamente mientras el
+// Usado por la página de éxito para comprobar si el webhook ya procesó el pago y creó el pedido. Puede devolver 404 legítimamente mientras el
 // webhook todavía no ha llegado — el frontend reintenta en ese caso.
 export const getOrderByPaymentIntent = async (req, res, next) => {
     try {
@@ -56,6 +55,33 @@ export const getOrderByPaymentIntent = async (req, res, next) => {
         }
 
         res.json({ ok: true, data: order });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getAllOrders = async (req, res, next) => {
+    try {
+        const orders = await orderService.getAllOrders();
+        res.json({ ok: true, data: orders });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updateOrderStatus = async (req, res, next) => {
+    try {
+        const { orderId } = req.params;
+        const { status } = req.body;
+
+        if (!status) {
+            const error = new Error("El campo 'status' es obligatorio");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        const updatedOrder = await orderService.updateOrderStatus(orderId, status);
+        res.json({ ok: true, data: updatedOrder });
     } catch (error) {
         next(error);
     }

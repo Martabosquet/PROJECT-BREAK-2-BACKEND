@@ -141,3 +141,36 @@ export const getOrderByPaymentIntentId = async (userId, paymentIntentId) => {
         include: { items: true },
     })
 }
+
+// Lista TODOS los pedidos del sistema, sin filtrar por usuario.
+// Uso exclusivo de admin (protegido en la ruta con requireRole).
+export const getAllOrders = async () => {
+    return prisma.order.findMany({
+        include: { items: { include: { product: true } } },
+        orderBy: { createdAt: 'desc' },
+    });
+};
+
+const VALID_STATUSES = ["PAID", "SHIPPED", "DELIVERED", "CANCELLED"];
+
+// Cambia el estado de un pedido. No valida pertenencia a un usuario concreto porque es una acción exclusiva de admin.
+export const updateOrderStatus = async (orderId, status) => {
+    if (!VALID_STATUSES.includes(status)) {
+        const error = new Error(`Estado inválido. Debe ser uno de: ${VALID_STATUSES.join(", ")}`);
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const existingOrder = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!existingOrder) {
+        const error = new Error("Pedido no encontrado");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    return prisma.order.update({
+        where: { id: orderId },
+        data: { status },
+        include: { items: { include: { product: true } } },
+    });
+};

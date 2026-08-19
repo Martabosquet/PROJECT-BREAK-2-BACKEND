@@ -70,8 +70,8 @@ model Order {
   city            String
   postalCode      String
   country         String
-  stripePaymentIntentId String? @unique 
-  status          String      @default("PENDING")  // PENDING | PAID | FAILED
+  stripePaymentIntentId String? @unique
+  status                 OrderStatus @default(PAID)
   
   createdAt       DateTime    @default(now()) @map("created_at")
   items           OrderItem[]
@@ -92,4 +92,11 @@ model OrderItem {
 enum CartStatus {
   ACTIVE
   CHECKED_OUT
+}
+
+enum OrderStatus {
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
