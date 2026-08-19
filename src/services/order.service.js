@@ -1,17 +1,16 @@
 import prisma from "../config/prismaClient.js"
 
-// Crea un pedido a partir del carrito activo del usuario, descuenta stock
-// y marca el carrito como CHECKED_OUT, todo dentro de una transacción.
-// paymentIntentId permite detectar si este pago ya generó un pedido antes
-// (Stripe puede reenviar el mismo webhook más de una vez).
+const isUniqueConstraintOnPaymentIntent = (error) => {
+    return error?.code === "P2002" && error?.meta?.modelName === "Order"
+}
+
 export const createOrder = async (userId, shippingAddress, paymentIntentId) => {
     if (paymentIntentId) {
         const existingOrder = await prisma.order.findUnique({
             where: { stripePaymentIntentId: paymentIntentId },
+            include: { items: { include: { product: true } } },
         })
         if (existingOrder) {
-            // Ya se procesó este pago antes: devolvemos el pedido existente
-            // en vez de crear uno duplicado.
             return existingOrder
         }
     }
@@ -66,45 +65,63 @@ export const createOrder = async (userId, shippingAddress, paymentIntentId) => {
         });
     }
 
-    const newOrder = await prisma.$transaction(async (tx) => {
-        for (const item of cart.items) {
-            await tx.product.update({
-                where: { id: item.productId },
+    try {
+        const newOrder = await prisma.$transaction(async (tx) => {
+            for (const item of cart.items) {
+                await tx.product.update({
+                    where: { id: item.productId },
+                    data: {
+                        stock: {
+                            decrement: item.quantity,
+                        },
+                    },
+                });
+            }
+
+            const order = await tx.order.create({
                 data: {
-                    stock: {
-                        decrement: item.quantity,
+                    userId,
+                    total: calculatedTotal,
+                    street: shippingAddress.street,
+                    city: shippingAddress.city,
+                    postalCode: shippingAddress.postalCode,
+                    country: shippingAddress.country,
+                    stripePaymentIntentId: paymentIntentId,
+                    items: {
+                        create: orderItemsData,
+                    },
+                },
+                include: {
+                    items: {
+                        include: { product: true },
                     },
                 },
             });
+
+            await tx.cart.update({
+                where: { id: cart.id },
+                data: { status: 'CHECKED_OUT' }
+            });
+
+            return order;
+        });
+
+        return newOrder;
+
+    } catch (error) {
+        if (isUniqueConstraintOnPaymentIntent(error)) {
+            const existingOrder = await prisma.order.findUnique({
+                where: { stripePaymentIntentId: paymentIntentId },
+                include: { items: { include: { product: true } } },
+            });
+
+            if (existingOrder) {
+                return existingOrder;
+            }
         }
 
-        const order = await tx.order.create({
-            data: {
-                userId,
-                total: calculatedTotal,
-                street: shippingAddress.street,
-                city: shippingAddress.city,
-                postalCode: shippingAddress.postalCode,
-                country: shippingAddress.country,
-                stripePaymentIntentId: paymentIntentId,
-                items: {
-                    create: orderItemsData,
-                },
-            },
-            include: {
-                items: true,
-            },
-        });
-
-        await tx.cart.update({
-            where: { id: cart.id },
-            data: { status: 'CHECKED_OUT' }
-        });
-
-        return order;
-    });
-
-    return newOrder;
+        throw error;
+    }
 };
 
 export const getUserOrders = async (userId) => {
@@ -115,8 +132,6 @@ export const getUserOrders = async (userId) => {
     });
 };
 
-// Busca un pedido por el id del PaymentIntent de Stripe, verificando que
-// pertenezca al usuario que pregunta (evita que un usuario consulte pedidos ajenos).
 export const getOrderByPaymentIntentId = async (userId, paymentIntentId) => {
     return prisma.order.findFirst({
         where: {

@@ -1,5 +1,7 @@
 import stripe from "../config/stripe.js"
+import prisma from "../config/prismaClient.js"                         // 👈 nuevo
 import * as orderService from "../services/order.service.js"
+import { sendOrderConfirmationEmail } from "../services/email.service.js"  // 👈 nuevo
 
 export const stripeWebhookController = async (req, res) => {
     const signature = req.headers['stripe-signature']
@@ -25,14 +27,26 @@ export const stripeWebhookController = async (req, res) => {
         const { userId, street, city, postalCode, country } = paymentIntent.metadata
 
         try {
-            await orderService.createOrder(
+            const order = await orderService.createOrder(
                 userId,
                 { street, city, postalCode, country },
                 paymentIntent.id
             )
+
+            const user = await prisma.user.findUnique({
+                where: { id: Number(userId) },
+                select: { email: true, name: true },
+            })
+
+            if (user?.email) {
+                // No esperamos (await) a que el email termine de enviarse:
+                // así respondemos a Stripe cuanto antes, reduciendo el riesgo
+                // de que interprete la tardanza como un fallo y reintente.
+                sendOrderConfirmationEmail(order, user.email, user.name)
+                    .catch((err) => console.error('Error enviando email (async):', err))
+            }
         } catch (error) {
             console.error('Error creando el pedido desde el webhook:', error)
-            // Devolvemos 500 para que Stripe reintente este webhook más tarde
             return res.status(500).json({ received: false })
         }
     }
