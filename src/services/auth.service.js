@@ -139,21 +139,21 @@ const deleteUserAccount = async (userId) => {
   });
 };
 
-const updateCinephileProfile = async(userId,data)=>{
+const updateCinephileProfile = async (userId, data) => {
 
   return prisma.user.update({
-    where:{
-      id:userId,
+    where: {
+      id: userId,
     },
 
     data,
 
-    select:{
-      id:true,
-      favoriteGenre:true,
-      favoriteDirector:true,
-      favoriteMovie:true,
-      bio:true,
+    select: {
+      id: true,
+      favoriteGenre: true,
+      favoriteDirector: true,
+      favoriteMovie: true,
+      bio: true,
     },
   });
 
@@ -177,6 +177,73 @@ const getPublicProfile = async (userId) => {
   });
 };
 
+const VALID_ROLES = ["user", "admin"];
+
+const getAllUsers = async () => {
+  return prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      profileImage: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+};
+
+const updateUserRole = async (userId, role, requestingUserId) => {
+  if (!VALID_ROLES.includes(role)) {
+    const error = new Error(`Rol inválido. Debe ser uno de: ${VALID_ROLES.join(", ")}`);
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (Number(userId) === Number(requestingUserId)) {
+    const error = new Error("No puedes cambiar tu propio rol");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const existingUser = await prisma.user.findUnique({ where: { id: Number(userId) } });
+  if (!existingUser) {
+    const error = new Error("Usuario no encontrado");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return prisma.user.update({
+    where: { id: Number(userId) },
+    data: { role },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      profileImage: true,
+      createdAt: true,
+    },
+  });
+};
+
+const deleteUserByAdmin = async (userId, requestingUserId) => {
+  if (Number(userId) === Number(requestingUserId)) {
+    const error = new Error("No puedes eliminar tu propia cuenta desde aquí");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const existingUser = await prisma.user.findUnique({ where: { id: Number(userId) } });
+  if (!existingUser) {
+    const error = new Error("Usuario no encontrado");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  await prisma.user.delete({ where: { id: Number(userId) } });
+};
+
 export const authService = {
   registerUser,
   login,
@@ -185,4 +252,7 @@ export const authService = {
   deleteUserAccount,
   updateCinephileProfile,
   getPublicProfile,
+  getAllUsers,
+  updateUserRole,
+  deleteUserByAdmin,
 }

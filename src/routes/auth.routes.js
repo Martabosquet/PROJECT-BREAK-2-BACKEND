@@ -22,12 +22,14 @@ router.delete("/api/me", authMiddleware, authController.deleteAccount); // Para 
 router.patch("/api/profile", authMiddleware, upload.single("profileImage"), authController.updateProfile);  // Actualizar datos personales
 router.patch("/api/profile/cinephile", authMiddleware, authController.updateCinephileProfile);  // Actualizar perfil cinéfilo
 
-// Ruta restringida por rol (Panel de admin)
-router.get(
-  "/api/admin",
-  authMiddleware,
-  requireRole("admin"),
-  authController.getAdmin,
-);
+// Panel de administración (ADMIN)
+router.get("/api/admin", authMiddleware, requireRole("admin"), authController.getAdmin);
+
+// Rutas exclusivas de administración de usuarios
+router.get("/api/admin/users", authMiddleware, requireRole("admin"), authController.getAllUsers);
+router.patch("/api/admin/users/:userId/role", authMiddleware, requireRole("admin"), authController.updateUserRole);
+router.delete("/api/admin/users/:userId", authMiddleware, requireRole("admin"), authController.deleteUserByAdmin);
+
+
 
 export default router

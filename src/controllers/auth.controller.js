@@ -223,7 +223,7 @@ const updateProfile = async (req, res, next) => {
     });
 
 
-  } catch(error) {
+  } catch (error) {
     next(error);
   }
 };
@@ -278,13 +278,13 @@ const updateCinephileProfile = async (req, res, next) => {
 
 
     res.json({
-      ok:true,
-      message:"Perfil cinéfilo actualizado correctamente",
-      data:updatedUser,
+      ok: true,
+      message: "Perfil cinéfilo actualizado correctamente",
+      data: updatedUser,
     });
 
 
-  } catch(error) {
+  } catch (error) {
     next(error);
   }
 };
@@ -322,19 +322,19 @@ const updatePassword = async (req, res, next) => {
 
 
     res.json({
-      ok:true,
-      message:"Contraseña actualizada correctamente",
+      ok: true,
+      message: "Contraseña actualizada correctamente",
     });
 
 
-  } catch(error) {
+  } catch (error) {
     next(error);
   }
 };
 
 
 
-const deleteAccount = async(req,res,next)=>{
+const deleteAccount = async (req, res, next) => {
   try {
 
     const userId = Number(req.user.id);
@@ -348,22 +348,22 @@ const deleteAccount = async(req,res,next)=>{
 
 
     res.json({
-      ok:true,
-      message:"Cuenta eliminada correctamente",
+      ok: true,
+      message: "Cuenta eliminada correctamente",
     });
 
 
-  }catch(error){
+  } catch (error) {
     next(error);
   }
 };
 
 
 
-const getAdmin = (req,res)=>{
+const getAdmin = (req, res) => {
   res.json({
-    ok:true,
-    message:`Bienvenido al panel admin ${req.user.email}`,
+    ok: true,
+    message: `Bienvenido al panel admin ${req.user.email}`,
   });
 };
 
@@ -394,6 +394,47 @@ const getPublicProfile = async (req, res, next) => {
   }
 };
 
+const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await authService.getAllUsers();
+    res.json({ ok: true, data: users });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateUserRole = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+    const requestingUserId = req.user.id;
+
+    if (!role) {
+      const error = new Error("El campo 'role' es obligatorio");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const updatedUser = await authService.updateUserRole(userId, role, requestingUserId);
+    res.json({ ok: true, data: updatedUser });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteUserByAdmin = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const requestingUserId = req.user.id;
+
+    await authService.deleteUserByAdmin(userId, requestingUserId);
+    res.json({ ok: true, message: "Usuario eliminado correctamente" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 export const authController = {
   register,
   login,
@@ -405,4 +446,7 @@ export const authController = {
   updatePassword,
   deleteAccount,
   getPublicProfile,
+  getAllUsers,
+  updateUserRole,
+  deleteUserByAdmin,
 };
