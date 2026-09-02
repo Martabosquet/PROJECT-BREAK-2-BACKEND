@@ -14,5 +14,7 @@ router.post("/api/products/:productId/reviews", authMiddleware, reviewController
 // Rutas administrativas adicionales que requieren autenticación y rol de admin
 router.put("/api/reviews/:id", authMiddleware, requireRole("admin"), reviewController.updateReview)
 router.delete("/api/reviews/:id", authMiddleware, requireRole("admin"), reviewController.deleteReview)
+router.get('/api/admin/reviews', authMiddleware, requireRole("admin"), reviewController.getAllReviewsForAdmin);
+router.delete('/api/admin/reviews/:id', authMiddleware, requireRole("admin"), reviewController.deleteReview);
 
 export default router

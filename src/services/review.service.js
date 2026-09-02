@@ -73,3 +73,8 @@ export const sortReviews = (reviews, order = "desc") => {
         order === "asc" ? a.rating - b.rating : b.rating - a.rating,
     )
 }
+
+// Obtener todas las reseñas para la moderación del panel de administración
+export const getAllReviewsForAdmin = async () => {
+    return await Review.find().sort({ createdAt: -1 })
+}

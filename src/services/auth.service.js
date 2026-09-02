@@ -21,7 +21,7 @@ const registerUser = async (name, email, password, role) => {
       name,
       email,
       password: hashedPassword,
-      role,
+      role: "user", //siempre user al registrarse
     },
     select: {
       id: true,
@@ -140,14 +140,11 @@ const deleteUserAccount = async (userId) => {
 };
 
 const updateCinephileProfile = async (userId, data) => {
-
   return prisma.user.update({
     where: {
       id: userId,
     },
-
     data,
-
     select: {
       id: true,
       favoriteGenre: true,
@@ -156,7 +153,26 @@ const updateCinephileProfile = async (userId, data) => {
       bio: true,
     },
   });
+};
 
+const getProfile = async (userId) => {
+  return prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      profileImage: true,
+
+      favoriteGenre: true,
+      favoriteDirector: true,
+      favoriteMovie: true,
+      bio: true,
+    },
+  });
 };
 
 const getPublicProfile = async (userId) => {
@@ -244,6 +260,27 @@ const deleteUserByAdmin = async (userId, requestingUserId) => {
   await prisma.user.delete({ where: { id: Number(userId) } });
 };
 
+// ================== DASHBOARD STATS =========================
+const getDashboardStats = async () => {
+  const [totalProducts, totalUsers, totalOrders, orders] = await Promise.all([
+    prisma.product.count(),
+    prisma.user.count(),
+    prisma.order.count(),
+    prisma.order.findMany({
+      select: { total: true },
+    }),
+  ]);
+
+  const totalRevenue = orders.reduce((acc, order) => acc + (Number(order.total) || 0), 0);
+
+  return {
+    totalProducts,
+    totalUsers,
+    totalOrders,
+    totalRevenue: totalRevenue.toFixed(2),
+  };
+};
+
 export const authService = {
   registerUser,
   login,
@@ -251,8 +288,10 @@ export const authService = {
   updatePasswordUser,
   deleteUserAccount,
   updateCinephileProfile,
+  getProfile,
   getPublicProfile,
   getAllUsers,
   updateUserRole,
   deleteUserByAdmin,
+  getDashboardStats,
 }

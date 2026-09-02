@@ -5,7 +5,7 @@ const reviewSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    userName: {  // 👈 Añadimos este campo
+    userName: {
         type: String,
         required: true,
         default: "Usuario Anónimo"

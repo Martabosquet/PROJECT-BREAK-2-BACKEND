@@ -1,4 +1,6 @@
 import * as reviewService from "../services/review.service.js"
+import { Review } from "../models/review.model.js"
+import prisma from "../config/prismaClient.js"
 
 export const createReview = async (req, res, next) => {
     try {
@@ -72,6 +74,46 @@ export const updateReview = async (req, res, next) => {
         })
     } catch (error) {
         next(error);
+    }
+}
+
+export const getAllReviewsForAdmin = async (req, res, next) => {
+    try {
+        const reviews = await reviewService.getAllReviewsForAdmin();
+
+        const enrichedReviews = await Promise.all(
+            reviews.map(async (review) => {
+                let productName = "Película desconocida";
+
+                if (review.productId) {
+                    try {
+                        // Como el id en Product es String (cuid), pasamos review.productId directamente
+                        const product = await prisma.product.findUnique({
+                            where: { id: review.productId },
+                            select: { name: true } // El campo en tu schema es 'name'
+                        });
+
+                        if (product && product.name) {
+                            productName = product.name;
+                        }
+                    } catch (e) {
+                        console.error("Error buscando producto:", e);
+                    }
+                }
+
+                return {
+                    ...review.toObject(),
+                    productName
+                };
+            })
+        );
+
+        res.json({
+            ok: true,
+            data: enrichedReviews,
+        })
+    } catch (error) {
+        next(error)
     }
 }
 

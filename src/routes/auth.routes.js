@@ -29,7 +29,7 @@ router.get("/api/admin", authMiddleware, requireRole("admin"), authController.ge
 router.get("/api/admin/users", authMiddleware, requireRole("admin"), authController.getAllUsers);
 router.patch("/api/admin/users/:userId/role", authMiddleware, requireRole("admin"), authController.updateUserRole);
 router.delete("/api/admin/users/:userId", authMiddleware, requireRole("admin"), authController.deleteUserByAdmin);
-
+router.get('/admin/stats', authMiddleware, requireRole("admin"), authController.getDashboardStats);
 
 
 export default router

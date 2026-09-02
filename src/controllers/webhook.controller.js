@@ -1,7 +1,7 @@
 import stripe from "../config/stripe.js"
-import prisma from "../config/prismaClient.js"                         // 👈 nuevo
+import prisma from "../config/prismaClient.js"
 import * as orderService from "../services/order.service.js"
-import { sendOrderConfirmationEmail } from "../services/email.service.js"  // 👈 nuevo
+import { sendOrderConfirmationEmail } from "../services/email.service.js"
 
 export const stripeWebhookController = async (req, res) => {
     const signature = req.headers['stripe-signature']
@@ -9,9 +9,6 @@ export const stripeWebhookController = async (req, res) => {
     let event
 
     try {
-        // req.body debe llegar aquí como Buffer sin parsear (ver el aviso
-        // sobre app.js más abajo) — Stripe firma el cuerpo EXACTO que envió,
-        // y si Express ya lo hubiera convertido a JSON, la firma no coincidiría.
         event = stripe.webhooks.constructEvent(
             req.body,
             signature,
@@ -39,9 +36,6 @@ export const stripeWebhookController = async (req, res) => {
             })
 
             if (user?.email) {
-                // No esperamos (await) a que el email termine de enviarse:
-                // así respondemos a Stripe cuanto antes, reduciendo el riesgo
-                // de que interprete la tardanza como un fallo y reintente.
                 sendOrderConfirmationEmail(order, user.email, user.name)
                     .catch((err) => console.error('Error enviando email (async):', err))
             }
