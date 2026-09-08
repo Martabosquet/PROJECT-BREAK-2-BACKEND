@@ -4,7 +4,9 @@ const isUniqueConstraintOnPaymentIntent = (error) => {
     return error?.code === "P2002" && error?.meta?.modelName === "Order"
 }
 
-export const createOrder = async (userId, shippingAddress, paymentIntentId) => {
+export const createOrder = async (rawUserId, shippingAddress, paymentIntentId) => {
+    const userId = String(rawUserId);
+
     if (paymentIntentId) {
         const existingOrder = await prisma.order.findUnique({
             where: { stripePaymentIntentId: paymentIntentId },
@@ -67,6 +69,7 @@ export const createOrder = async (userId, shippingAddress, paymentIntentId) => {
 
     try {
         const newOrder = await prisma.$transaction(async (tx) => {
+            // 1. Descontar stock
             for (const item of cart.items) {
                 await tx.product.update({
                     where: { id: item.productId },
@@ -78,6 +81,7 @@ export const createOrder = async (userId, shippingAddress, paymentIntentId) => {
                 });
             }
 
+            // 2. Crear la orden con sus items
             const order = await tx.order.create({
                 data: {
                     userId,
@@ -98,6 +102,7 @@ export const createOrder = async (userId, shippingAddress, paymentIntentId) => {
                 },
             });
 
+            // 3. Marcar el carrito como procesado
             await tx.cart.update({
                 where: { id: cart.id },
                 data: { status: 'CHECKED_OUT' }
@@ -124,26 +129,26 @@ export const createOrder = async (userId, shippingAddress, paymentIntentId) => {
     }
 };
 
-export const getUserOrders = async (userId) => {
+export const getUserOrders = async (rawUserId) => {
+    const userId = String(rawUserId);
     return prisma.order.findMany({
         where: { userId },
-        include: { items: true },
+        include: { items: { include: { product: true } } },
         orderBy: { createdAt: 'desc' },
     });
 };
 
-export const getOrderByPaymentIntentId = async (userId, paymentIntentId) => {
+export const getOrderByPaymentIntentId = async (rawUserId, paymentIntentId) => {
+    const userId = String(rawUserId);
     return prisma.order.findFirst({
         where: {
             stripePaymentIntentId: paymentIntentId,
             userId,
         },
-        include: { items: true },
+        include: { items: { include: { product: true } } },
     })
 }
 
-// Lista TODOS los pedidos del sistema, sin filtrar por usuario.
-// Uso exclusivo de admin (protegido en la ruta con requireRole).
 export const getAllOrders = async () => {
     return prisma.order.findMany({
         include: { items: { include: { product: true } } },
@@ -153,7 +158,6 @@ export const getAllOrders = async () => {
 
 const VALID_STATUSES = ["PAID", "SHIPPED", "DELIVERED", "CANCELLED"];
 
-// Cambia el estado de un pedido. No valida pertenencia a un usuario concreto porque es una acción exclusiva de admin.
 export const updateOrderStatus = async (orderId, status) => {
     if (!VALID_STATUSES.includes(status)) {
         const error = new Error(`Estado inválido. Debe ser uno de: ${VALID_STATUSES.join(", ")}`);

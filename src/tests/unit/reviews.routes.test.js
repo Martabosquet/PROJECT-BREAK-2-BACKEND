@@ -7,6 +7,8 @@ const reviewController = {
   getReviewsByProduct: jest.fn((req, res) => res.json({ ok: true, data: [] })),
   updateReview: jest.fn((req, res) => res.json({ ok: true, data: { id: "review-1", ...req.body } })),
   deleteReview: jest.fn((req, res) => res.json({ ok: true, message: "Review eliminada" })),
+  // 💡 Necesario para evitar el error "argument handler must be a function"
+  getAllReviewsForAdmin: jest.fn((req, res) => res.json({ ok: true, data: [] })),
 }
 
 await jest.unstable_mockModule("../../controllers/review.controller.js", () => ({
@@ -50,6 +52,7 @@ describe("⭐ REVIEWS ENDPOINTS", () => {
     test("crea review con usuario autenticado", async () => {
       const res = await request(app)
         .post("/api/products/test-product/reviews")
+        .set("Cookie", [`token=${userToken}`])
         .set("Authorization", `Bearer ${userToken}`)
         .send({ rating: 8, comment: "Muy bueno" })
 
@@ -62,6 +65,7 @@ describe("⭐ REVIEWS ENDPOINTS", () => {
     test("valida que productId sea obligatorio", async () => {
       const res = await request(app)
         .post("/api/products//reviews")
+        .set("Cookie", [`token=${userToken}`])
         .set("Authorization", `Bearer ${userToken}`)
         .send({ rating: 7, comment: "Prueba" })
 
@@ -81,32 +85,23 @@ describe("⭐ REVIEWS ENDPOINTS", () => {
     test("deniega acceso a usuario normal (requiere admin)", async () => {
       const res = await request(app)
         .put("/api/reviews/review-1")
+        .set("Cookie", [`token=${userToken}`])
         .set("Authorization", `Bearer ${userToken}`)
         .send({ rating: 9, comment: "Intento de actualización" })
 
-      // La ruta tiene requireRole("admin"), por eso un user normal recibe 403
       expect(res.statusCode).toBe(403)
     })
 
     test("admin puede actualizar cualquier review", async () => {
       const res = await request(app)
         .put("/api/reviews/review-1")
+        .set("Cookie", [`token=${adminToken}`])
         .set("Authorization", `Bearer ${adminToken}`)
         .send({ rating: 5, comment: "Actualizado por admin" })
 
       expect(res.statusCode).toBe(200)
       expect(res.body.ok).toBe(true)
       expect(res.body.data.rating).toBe(5)
-    })
-
-    test("devuelve 403 si intenta actualizar sin rol admin", async () => {
-      const res = await request(app)
-        .put("/api/reviews/nonexistent")
-        .set("Authorization", `Bearer ${userToken}`)
-        .send({ rating: 7 })
-
-      // La ruta tiene requireRole("admin"), user normal siempre recibe 403
-      expect(res.statusCode).toBe(403)
     })
   })
 
@@ -120,29 +115,33 @@ describe("⭐ REVIEWS ENDPOINTS", () => {
     test("deniega acceso a usuario normal (requiere admin)", async () => {
       const res = await request(app)
         .delete("/api/reviews/review-1")
+        .set("Cookie", [`token=${userToken}`])
         .set("Authorization", `Bearer ${userToken}`)
 
-      // La ruta tiene requireRole("admin"), por eso un user normal recibe 403
       expect(res.statusCode).toBe(403)
     })
 
     test("admin puede eliminar cualquier review", async () => {
       const res = await request(app)
         .delete("/api/reviews/review-1")
+        .set("Cookie", [`token=${adminToken}`])
         .set("Authorization", `Bearer ${adminToken}`)
 
       expect(res.statusCode).toBe(200)
       expect(res.body.ok).toBe(true)
       expect(res.body.message).toMatch(/eliminada/i)
     })
+  })
 
-    test("devuelve 403 si intenta eliminar sin rol admin", async () => {
+  describe("GET /api/admin/reviews - Obtener todas las reseñas (Admin)", () => {
+    test("permite acceso únicamente a administradores", async () => {
       const res = await request(app)
-        .delete("/api/reviews/nonexistent")
-        .set("Authorization", `Bearer ${userToken}`)
+        .get("/api/admin/reviews")
+        .set("Cookie", [`token=${adminToken}`])
+        .set("Authorization", `Bearer ${adminToken}`)
 
-      // La ruta tiene requireRole("admin"), user normal siempre recibe 403
-      expect(res.statusCode).toBe(403)
+      expect(res.statusCode).toBe(200)
+      expect(res.body.ok).toBe(true)
     })
   })
 })

@@ -32,12 +32,13 @@ describe("🔐 AUTH ENDPOINTS", () => {
 
       const res = await request(app)
         .post("/api/auth/register")
-        .send({ name: "Test User", email: "test@example.com", password: "password123", role: "user" })
+        .send({ name: "Test User", email: "test@example.com", password: "password123" })
 
       expect(res.statusCode).toBe(201)
       expect(res.body.ok).toBe(true)
       expect(res.body.data).toMatchObject({ id: 1, email: "test@example.com", role: "user" })
-      expect(authService.registerUser).toHaveBeenCalledWith("Test User", "test@example.com", "password123", "user")
+      // 💡 CORREGIDO: Se ajusta a los 3 parámetros reales enviados por el controlador
+      expect(authService.registerUser).toHaveBeenCalledWith("Test User", "test@example.com", "password123")
     })
   })
 
@@ -73,6 +74,7 @@ describe("🔐 AUTH ENDPOINTS", () => {
 
       const res = await request(app)
         .post("/api/auth/logout")
+        .set("Cookie", [`token=${token}`])
         .set("Authorization", `Bearer ${token}`)
 
       expect(res.statusCode).toBe(200)
@@ -99,6 +101,7 @@ describe("🔐 AUTH ENDPOINTS", () => {
 
       const res = await request(app)
         .get("/api/me")
+        .set("Cookie", [`token=${token}`])
         .set("Authorization", `Bearer ${token}`)
 
       expect([200, 404, 500]).toContain(res.statusCode)
@@ -115,6 +118,7 @@ describe("🔐 AUTH ENDPOINTS", () => {
 
       const res = await request(app)
         .get("/api/admin")
+        .set("Cookie", [`token=${token}`])
         .set("Authorization", `Bearer ${token}`)
 
       expect(res.statusCode).toBe(403)
@@ -131,6 +135,7 @@ describe("🔐 AUTH ENDPOINTS", () => {
 
       const res = await request(app)
         .get("/api/admin")
+        .set("Cookie", [`token=${token}`])
         .set("Authorization", `Bearer ${token}`)
 
       expect(res.statusCode).toBe(200)

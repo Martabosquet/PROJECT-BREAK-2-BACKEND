@@ -24,6 +24,16 @@ export const stripeWebhookController = async (req, res) => {
         const { userId, street, city, postalCode, country } = paymentIntent.metadata
 
         try {
+            // Verificación de idempotencia: evitar duplicados si Stripe reintenta el evento
+            const existingOrder = await prisma.order.findFirst({
+                where: { stripePaymentIntentId: paymentIntent.id },
+            })
+
+            if (existingOrder) {
+                console.log(`⚠️ Pedido ya registrado previamente para el paymentIntent ${paymentIntent.id}.`)
+                return res.json({ received: true })
+            }
+
             const order = await orderService.createOrder(
                 userId,
                 { street, city, postalCode, country },
@@ -45,7 +55,6 @@ export const stripeWebhookController = async (req, res) => {
         }
     }
 
-    // Confirmamos a Stripe que hemos recibido y procesado el evento.
-    // Si no respondes 2xx, Stripe seguirá reintentando este mismo evento.
+    // Confirmamos a Stripe que hemos recibido y procesado el evento correctamente.
     res.json({ received: true })
 }
