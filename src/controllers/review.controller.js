@@ -144,3 +144,46 @@ export const deleteReview = async (req, res, next) => {
         next(error);
     }
 }
+
+export const getMyReviews = async (req, res, next) => {
+    try {
+        const userId = String(req.user.id);
+        const reviews = await reviewService.getReviewsByUser ? await reviewService.getReviewsByUser(userId) : await Review.find({ userId });
+
+        const enrichedReviews = await Promise.all(
+            reviews.map(async (review) => {
+                let productName = "Película desconocida";
+
+                if (review.productId) {
+                    try {
+                        const product = await prisma.product.findUnique({
+                            where: { id: review.productId },
+                            select: { name: true }
+                        });
+
+                        if (product && product.name) {
+                            productName = product.name;
+                        }
+                    } catch (e) {
+                        console.error("Error buscando producto:", e);
+                    }
+                }
+
+                // Si review es un documento de Mongoose, usamos .toObject(), si no, devolvemos plano
+                const reviewObj = typeof review.toObject === 'function' ? review.toObject() : review;
+
+                return {
+                    ...reviewObj,
+                    productName // Esto complementará el nombre de la película para el usuario
+                };
+            })
+        );
+
+        res.json({
+            ok: true,
+            data: enrichedReviews,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
