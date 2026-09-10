@@ -49,3 +49,29 @@ export const removeProductFromWishlist = (list, productId) => {
 export const isProductInWishlist = (list, productId) => {
     return list.includes(productId)
 }
+
+export const toggleWishlist = async (userId, productId) => {
+    const productExists = await prisma.product.findUnique({ where: { id: productId } })
+    if (!productExists) {
+        const error = new Error("El producto no existe")
+        error.statusCode = 404
+        throw error
+    }
+
+    const existing = await Wishlist.findOne({ userId, productId })
+    if (existing) {
+        await Wishlist.deleteOne({ _id: existing._id })
+        return { action: "removed" }
+    }
+
+    const item = await Wishlist.create({ userId, productId })
+    return { action: "added", item }
+}
+
+export const removeWishlistItem = async (userId, targetId) => {
+    const query = { userId, $or: [{ productId: targetId }] }
+    if (targetId.match(/^[0-9a-fA-F]{24}$/)) {
+        query.$or.push({ _id: targetId })
+    }
+    return Wishlist.findOneAndDelete(query)
+}

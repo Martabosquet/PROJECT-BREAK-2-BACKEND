@@ -2,7 +2,7 @@
 // PUT cualquier campo puede venir o no venir. Solo valida el formato de los campos que SÍ están presentes en el body, sin exigir ninguno.
 
 export const validateProductUpdate = (req, res, next) => {
-    const { name, price, stock } = req.body
+    const { name, price, stock, genre, director, releaseYear } = req.body
 
     if (name !== undefined && (typeof name !== "string" || name.trim() === "")) {
         return res.status(400).json({
@@ -12,8 +12,8 @@ export const validateProductUpdate = (req, res, next) => {
     }
 
     if (price !== undefined && price !== "") {
-        const parsedPrice = parseFloat(price)
-        if (isNaN(parsedPrice) || parsedPrice < 0) {
+        const parsedPrice = Number(price)
+        if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
             return res.status(400).json({
                 ok: false,
                 error: "El campo 'price' debe ser un número positivo.",
@@ -31,6 +31,25 @@ export const validateProductUpdate = (req, res, next) => {
             })
         }
         req.body.stock = parsedStock
+    }
+
+    if (genre !== undefined && typeof genre !== "string") {
+        return res.status(400).json({ ok: false, error: "El campo 'genre' debe ser un texto." })
+    }
+
+    if (director !== undefined && typeof director !== "string") {
+        return res.status(400).json({ ok: false, error: "El campo 'director' debe ser un texto." })
+    }
+
+    if (releaseYear !== undefined && releaseYear !== "") {
+        const parsedYear = Number(releaseYear)
+        const currentYear = new Date().getFullYear()
+        if (!Number.isInteger(parsedYear) || parsedYear < 1888 || parsedYear > currentYear) {
+            return res.status(400).json({ ok: false, error: "El año debe ser un entero entre 1888 y el año actual." })
+        }
+        req.body.releaseYear = parsedYear
+    } else if (releaseYear === "") {
+        req.body.releaseYear = null
     }
 
     next()

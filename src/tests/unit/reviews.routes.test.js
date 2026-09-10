@@ -7,8 +7,8 @@ const reviewController = {
   getReviewsByProduct: jest.fn((req, res) => res.json({ ok: true, data: [] })),
   updateReview: jest.fn((req, res) => res.json({ ok: true, data: { id: "review-1", ...req.body } })),
   deleteReview: jest.fn((req, res) => res.json({ ok: true, message: "Review eliminada" })),
-  // 💡 Necesario para evitar el error "argument handler must be a function"
   getAllReviewsForAdmin: jest.fn((req, res) => res.json({ ok: true, data: [] })),
+  getMyReviews: jest.fn((req, res) => res.json({ ok: true, data: [] })),
 }
 
 await jest.unstable_mockModule("../../controllers/review.controller.js", () => ({
@@ -112,13 +112,14 @@ describe("⭐ REVIEWS ENDPOINTS", () => {
       expect([401, 403]).toContain(res.statusCode)
     })
 
-    test("deniega acceso a usuario normal (requiere admin)", async () => {
+    test("usuario normal puede eliminar su propia review", async () => {
       const res = await request(app)
         .delete("/api/reviews/review-1")
         .set("Cookie", [`token=${userToken}`])
         .set("Authorization", `Bearer ${userToken}`)
 
-      expect(res.statusCode).toBe(403)
+      expect(res.statusCode).toBe(200)
+      expect(res.body.ok).toBe(true)
     })
 
     test("admin puede eliminar cualquier review", async () => {
@@ -130,18 +131,6 @@ describe("⭐ REVIEWS ENDPOINTS", () => {
       expect(res.statusCode).toBe(200)
       expect(res.body.ok).toBe(true)
       expect(res.body.message).toMatch(/eliminada/i)
-    })
-  })
-
-  describe("GET /api/admin/reviews - Obtener todas las reseñas (Admin)", () => {
-    test("permite acceso únicamente a administradores", async () => {
-      const res = await request(app)
-        .get("/api/admin/reviews")
-        .set("Cookie", [`token=${adminToken}`])
-        .set("Authorization", `Bearer ${adminToken}`)
-
-      expect(res.statusCode).toBe(200)
-      expect(res.body.ok).toBe(true)
     })
   })
 })

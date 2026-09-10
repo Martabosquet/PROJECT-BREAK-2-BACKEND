@@ -10,6 +10,9 @@ model Product {
   id          String      @id @default(cuid())
   name        String
   description String?  @default("")
+  genre       String?
+  director    String?
+  releaseYear Int?
   price       Float
   stock       Int      @default(0)
   imageUrl    String?   @default("https://placehold.co/300x300?text=Producto")
@@ -87,6 +90,16 @@ model OrderItem {
   product         Product  @relation(fields: [productId], references: [id])
   quantity        Int
   priceAtPurchase Float
+}
+
+model PaymentSnapshot {
+  id              String   @id @default(cuid())
+  paymentIntentId String   @unique
+  userId          String
+  total           Float
+  shippingAddress Json
+  items           Json
+  createdAt       DateTime @default(now())
 }
 
 enum CartStatus {

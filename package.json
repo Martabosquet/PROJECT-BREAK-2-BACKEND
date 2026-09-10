@@ -1,25 +1,21 @@
 {
-  "name": "sprint-features-7",
+  "name": "project-break-2-backend",
   "version": "1.0.0",
-  "description": "API REST de productos construida con Express.js para gestionar un catálogo de productos.",
+  "description": "API REST del e-commerce Atxurre CineClub.",
   "main": "index.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Martabosquet/SPRINT-FEATURES-7.git"
+    "test": "cross-env NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:coverage": "npm test -- --coverage",
+    "prisma:generate": "prisma generate",
+    "prisma:validate": "prisma validate",
+    "prisma:migrate:deploy": "prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
-  "bugs": {
-    "url": "https://github.com/Martabosquet/SPRINT-FEATURES-7/issues"
-  },
-  "homepage": "https://github.com/Martabosquet/SPRINT-FEATURES-7#readme",
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",

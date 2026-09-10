@@ -1,6 +1,13 @@
 import prisma from "../config/prismaClient.js"
 import stripe from "../config/stripe.js"
 
+const STANDARD_SHIPPING_COST = 4.95
+
+const getShippingCost = (population = "", subtotal = 0) =>
+    population.trim().toLocaleLowerCase("es-ES") === "bakio" || Number(subtotal) > 50
+        ? 0
+        : STANDARD_SHIPPING_COST
+
 // Calcula el total real del carrito activo del usuario (nunca nos fiamos de un
 // total que mande el frontend) y crea un PaymentIntent en Stripe por ese importe.
 export const createPaymentIntent = async (userId, shippingAddress) => {
@@ -16,6 +23,7 @@ export const createPaymentIntent = async (userId, shippingAddress) => {
     }
 
     let total = 0
+    const snapshotItems = []
     for (const item of cart.items) {
         if (!item.product) {
             const error = new Error(`El producto con ID ${item.productId} ya no existe`)
@@ -29,26 +37,39 @@ export const createPaymentIntent = async (userId, shippingAddress) => {
             error.statusCode = 400
             throw error
         }
-        total += Number(item.product.price) * item.quantity
+        const price = Number(item.product.price)
+        total += price * item.quantity
+        snapshotItems.push({
+            productId: item.product.id,
+            name: item.product.name,
+            price,
+            quantity: item.quantity,
+        })
     }
 
-    // Stripe trabaja en la unidad mínima de la moneda: céntimos para EUR.
-    // 12.50 € -> 1250. Si no conviertes, cobrarías 100 veces menos de lo esperado.
-    const amountInCents = Math.round(total * 100)
+    const shippingCost = getShippingCost(shippingAddress.city, total)
+    const totalWithShipping = total + shippingCost
 
-    // Guardamos en metadata todo lo que el webhook va a necesitar para crear el
-    // pedido después, porque el webhook NO tiene acceso a req.user ni a req.body.
+    // Stripe trabaja en la unidad mínima de la moneda: céntimos para EUR. (12.50 € -> 1250)
+    const amountInCents = Math.round(totalWithShipping * 100)
+
     const paymentIntent = await stripe.paymentIntents.create({
         amount: amountInCents,
         currency: "eur",
         metadata: {
             userId: String(userId),
-            street: shippingAddress.street,
-            city: shippingAddress.city,
-            postalCode: shippingAddress.postalCode,
-            country: shippingAddress.country,
         },
         automatic_payment_methods: { enabled: true },
+    })
+
+    await prisma.paymentSnapshot.create({
+        data: {
+            paymentIntentId: paymentIntent.id,
+            userId: String(userId),
+            total: totalWithShipping,
+            shippingAddress,
+            items: snapshotItems,
+        },
     })
 
     return {

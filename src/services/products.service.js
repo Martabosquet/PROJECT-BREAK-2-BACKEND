@@ -23,11 +23,12 @@ export const createProduct = async (data, file) => {
   return await prisma.product.create({
     data: {
       name: data.name,
-      // Convertimos el precio a float (en caso de que venga como cadena desde un formulario)
-      price: data.price ? parseFloat(data.price) : 0,
+      price: data.price !== undefined ? Number(data.price) : 0,
       description: data.description || null,
-      // Convertimos el stock a entero en base 10
-      stock: data.stock ? parseInt(data.stock, 10) : 0,
+      genre: data.genre?.trim() || null,
+      director: data.director?.trim() || null,
+      releaseYear: data.releaseYear ?? null,
+      stock: data.stock !== undefined ? Number(data.stock) : 0,
       imageUrl: imageUrl
     }
   });
@@ -35,14 +36,15 @@ export const createProduct = async (data, file) => {
 
 export const updateProduct = async (id, data, file) => {
   // Lista de campos permitidos en la actualización para evitar inserciones maliciosas
-  const allowedFields = ["name", "price", "description", "stock"];
+  const allowedFields = ["name", "price", "description", "genre", "director", "releaseYear", "stock"];
   const updateData = {};
 
   allowedFields.forEach((field) => {
     if (field in data) {
       // Parsear campos numéricos si vienen en el payload para evitar errores de tipo en la BD
-      if (field === "price") updateData[field] = parseFloat(data[field]);
-      else if (field === "stock") updateData[field] = parseInt(data[field], 10);
+      if (field === "price") updateData[field] = Number(data[field]);
+      else if (field === "stock" || field === "releaseYear") updateData[field] = Number(data[field]);
+      else if (field === "genre" || field === "director") updateData[field] = data[field]?.trim() || null;
       else updateData[field] = data[field];
     }
   });

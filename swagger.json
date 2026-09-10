@@ -18,10 +18,10 @@
   "components": {
     "securitySchemes": {
       "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT",
-        "description": "Token JWT obtenido en POST /api/auth/login. Formato: Bearer token"
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "token",
+        "description": "Cookie HttpOnly 'token' creada por POST /api/auth/login"
       }
     },
     "schemas": {
@@ -85,6 +85,19 @@
           "description": {
             "type": "string",
             "example": "Descripción del producto"
+          },
+          "genre": {
+            "type": "string",
+            "example": "Ciencia ficción"
+          },
+          "director": {
+            "type": "string",
+            "example": "Christopher Nolan"
+          },
+          "releaseYear": {
+            "type": "integer",
+            "minimum": 1888,
+            "example": 2010
           },
           "price": {
             "type": "number",
@@ -584,7 +597,7 @@
         }
       }
     },
-    "/api/cart/checkout": {
+    "/api/checkout": {
       "post": {
         "tags": [
           "Cart"
@@ -1054,6 +1067,39 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/admin/stats": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Obtener estadísticas del panel",
+        "description": "Devuelve las métricas del panel de administración.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estadísticas obtenidas correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean", "example": true },
+                    "stats": { "type": "object" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado"
           }
         }
       }

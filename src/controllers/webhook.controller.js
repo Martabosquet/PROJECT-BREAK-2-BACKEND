@@ -21,8 +21,6 @@ export const stripeWebhookController = async (req, res) => {
 
     if (event.type === 'payment_intent.succeeded') {
         const paymentIntent = event.data.object
-        const { userId, street, city, postalCode, country } = paymentIntent.metadata
-
         try {
             // Verificación de idempotencia: evitar duplicados si Stripe reintenta el evento
             const existingOrder = await prisma.order.findFirst({
@@ -34,14 +32,27 @@ export const stripeWebhookController = async (req, res) => {
                 return res.json({ received: true })
             }
 
+            const snapshot = await prisma.paymentSnapshot.findUnique({
+                where: { paymentIntentId: paymentIntent.id },
+            })
+
+            if (!snapshot) {
+                throw new Error(`No existe snapshot para el paymentIntent ${paymentIntent.id}`)
+            }
+
+            if (Math.round(Number(snapshot.total) * 100) !== paymentIntent.amount) {
+                throw new Error(`El importe del paymentIntent ${paymentIntent.id} no coincide con el snapshot`)
+            }
+
             const order = await orderService.createOrder(
-                userId,
-                { street, city, postalCode, country },
-                paymentIntent.id
+                snapshot.userId,
+                snapshot.shippingAddress,
+                paymentIntent.id,
+                snapshot
             )
 
             const user = await prisma.user.findUnique({
-                where: { id: Number(userId) },
+                where: { id: Number(snapshot.userId) },
                 select: { email: true, name: true },
             })
 

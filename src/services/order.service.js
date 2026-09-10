@@ -4,7 +4,7 @@ const isUniqueConstraintOnPaymentIntent = (error) => {
     return error?.code === "P2002" && error?.meta?.modelName === "Order"
 }
 
-export const createOrder = async (rawUserId, shippingAddress, paymentIntentId) => {
+export const createOrder = async (rawUserId, shippingAddress, paymentIntentId, snapshot = null) => {
     const userId = String(rawUserId);
 
     if (paymentIntentId) {
@@ -18,29 +18,24 @@ export const createOrder = async (rawUserId, shippingAddress, paymentIntentId) =
     }
 
     const cart = await prisma.cart.findFirst({
-        where: {
-            userId,
-            status: 'ACTIVE'
-        },
-        include: {
-            items: {
-                include: { product: true }
-            }
-        }
+        where: { userId, status: 'ACTIVE' },
+        include: { items: { include: { product: true } } },
     });
 
-    if (!cart || !cart.items || cart.items.length === 0) {
+    const sourceItems = snapshot?.items ?? cart?.items ?? [];
+    if (sourceItems.length === 0) {
         const error = new Error("El carrito está vacío");
         error.statusCode = 400;
         throw error;
     }
 
-    let calculatedTotal = 0;
+    let calculatedTotal = snapshot ? Number(snapshot.total) : 0;
     const orderItemsData = [];
 
-    for (const cartItem of cart.items) {
+    for (const cartItem of sourceItems) {
+        const productId = cartItem.productId;
         const product = cartItem.product || await prisma.product.findUnique({
-            where: { id: cartItem.productId }
+            where: { id: productId }
         });
 
         if (!product) {
@@ -49,19 +44,13 @@ export const createOrder = async (rawUserId, shippingAddress, paymentIntentId) =
             throw error;
         }
 
-        const price = Number(product.price);
+        const price = snapshot ? Number(cartItem.price) : Number(product.price);
         const quantity = Number(cartItem.quantity);
 
-        if (product.stock < quantity) {
-            const error = new Error(`No hay suficiente stock para la película: ${product.name}`);
-            error.statusCode = 400;
-            throw error;
-        }
-
-        calculatedTotal += price * quantity;
+        if (!snapshot) calculatedTotal += price * quantity;
 
         orderItemsData.push({
-            productId: product.id,
+            productId,
             quantity: quantity,
             priceAtPurchase: price,
         });
@@ -70,15 +59,16 @@ export const createOrder = async (rawUserId, shippingAddress, paymentIntentId) =
     try {
         const newOrder = await prisma.$transaction(async (tx) => {
             // 1. Descontar stock
-            for (const item of cart.items) {
-                await tx.product.update({
-                    where: { id: item.productId },
-                    data: {
-                        stock: {
-                            decrement: item.quantity,
-                        },
-                    },
+            for (const item of sourceItems) {
+                const updated = await tx.product.updateMany({
+                    where: { id: item.productId, stock: { gte: item.quantity } },
+                    data: { stock: { decrement: item.quantity } },
                 });
+                if (updated.count !== 1) {
+                    const error = new Error(`No hay suficiente stock para el producto ${item.productId}`);
+                    error.statusCode = 400;
+                    throw error;
+                }
             }
 
             // 2. Crear la orden con sus items
@@ -103,10 +93,12 @@ export const createOrder = async (rawUserId, shippingAddress, paymentIntentId) =
             });
 
             // 3. Marcar el carrito como procesado
-            await tx.cart.update({
-                where: { id: cart.id },
-                data: { status: 'CHECKED_OUT' }
-            });
+            if (cart) {
+                await tx.cart.update({
+                    where: { id: cart.id },
+                    data: { status: 'CHECKED_OUT' }
+                });
+            }
 
             return order;
         });
