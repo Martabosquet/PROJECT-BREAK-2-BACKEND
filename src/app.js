@@ -24,6 +24,7 @@ import paymentRouter from './routes/payment.routes.js';
 // IMPORTACIONES DE MIDDLEWARES PERSONALIZADOS (Control de errores/404)
 import { notFound } from "./middlewares/notFound.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import { verifyOrigin } from "./middlewares/verifyOrigin.js";
 
 // INICIALIZACIÓN DE LA APLICACIÓN
 import { stripeWebhookController } from './controllers/webhook.controller.js';
@@ -105,6 +106,7 @@ app.post(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(verifyOrigin);
 
 // DECLARACIÓN DE RUTAS DE LA API (Endpoints y controladores)
 app.get("/", (req, res) => {

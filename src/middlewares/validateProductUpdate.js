@@ -4,6 +4,13 @@
 export const validateProductUpdate = (req, res, next) => {
     const { name, price, stock, genre, director, releaseYear } = req.body
 
+    if (Object.keys(req.body).length === 0 && !req.file) {
+        return res.status(400).json({
+            ok: false,
+            error: "Debes enviar al menos un campo para actualizar el producto.",
+        })
+    }
+
     if (name !== undefined && (typeof name !== "string" || name.trim() === "")) {
         return res.status(400).json({
             ok: false,

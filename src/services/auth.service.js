@@ -1,9 +1,8 @@
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import prisma from "../config/prismaClient.js"
-import cloudinary from "../config/cloudinary.js";
 
-const registerUser = async (name, email, password, role) => {
+const registerUser = async (name, email, password, _role) => {
   const userExists = await prisma.user.findUnique({
     where: { email },
   })

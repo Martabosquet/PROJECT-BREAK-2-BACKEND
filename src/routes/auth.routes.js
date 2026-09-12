@@ -5,12 +5,25 @@ import { authController } from "../controllers/auth.controller.js"
 import { authMiddleware } from "../middlewares/authenticate.js"
 import { requireRole } from "../middlewares/requireRole.js"
 import upload from "../config/multer.js"; // Middleware para procesar la imagen
+import rateLimit from "express-rate-limit";
 
 const router = express.Router()
 
+const loginLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	max: 10,
+	standardHeaders: true,
+	legacyHeaders: false,
+	skip: () => process.env.NODE_ENV === "test",
+	message: {
+		ok: false,
+		error: "Demasiados intentos de inicio de sesión. Inténtalo más tarde.",
+	},
+});
+
 // Rutas públicas
 router.post('/api/auth/register', upload.single('profileImage'), authController.register);
-router.post("/api/auth/login", authController.login);
+router.post("/api/auth/login", loginLimiter, authController.login);
 router.post("/api/auth/logout", authController.logout);
 router.get("/api/users/:userId", authController.getPublicProfile);  // Obtener perfil público de otro usuario
 

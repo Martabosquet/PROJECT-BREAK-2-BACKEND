@@ -1,4 +1,4 @@
-export const errorHandler = (error, req, res, next) => {
+export const errorHandler = (error, req, res, _next) => {
     console.error("❌ Error capturado en el handler:", error.message);
 
     // Error de clave duplicada en Prisma ('P2002') o en Mongoose (11000)
@@ -25,6 +25,13 @@ export const errorHandler = (error, req, res, next) => {
         error.message = Object.values(error.errors)
             .map((e) => e.message)
             .join(', ');
+    }
+
+    if (error.name === 'MulterError' || error.code === 'LIMIT_FILE_SIZE') {
+        error.statusCode = 400;
+        error.message = error.code === 'LIMIT_FILE_SIZE'
+            ? 'La imagen no puede superar los 5 MB.'
+            : 'La subida de archivos no es válida.';
     }
 
     const statusCode = error.statusCode || 500;
